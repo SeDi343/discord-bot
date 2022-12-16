@@ -1,0 +1,7 @@
+{
+    "token": "YOURDISCORDTOKEN",
+    "client_id": "REDDIT_CLIENT_ID",
+    "client_secret": "REDDIT_CLIENT_SECRET",
+    "redirect_uri": "REDDIT_REDIRECT_URI",
+    "user_agent": "REDDIT_USER_AGENT"
+}

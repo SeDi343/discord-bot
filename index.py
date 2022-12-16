@@ -3,15 +3,19 @@
 # Discord Bot Template
 """
 # Imports
-import requests
 import sys
+import requests
+import json
 import io
 import aiohttp
+import asyncpraw
+import asyncio
 from discord import app_commands, Intents, Client, Interaction, Embed, File
 
-# Read Token from token file
-with open('token', 'r') as file:
-    token = file.read().rstrip()
+# Read config file
+with open("config.json", 'r') as jsonfile:
+    config_data = json.load(jsonfile)
+    token = config_data.get("token")
 
 # Check if Token is valid
 r = requests.get("https://discord.com/api/v10/users/@me", headers={
@@ -32,6 +36,7 @@ print("\n".join([
 ]))
 
 
+# Main Class to response in Discord
 class ChatResponse(Client):
     def __init__(self, *, intents: Intents):
         super().__init__(intents=intents)
@@ -62,10 +67,11 @@ async def on_ready():
     ]))
 
 
+# Function for a Hello
 async def _init_command_hello_response(interaction: Interaction) -> None:
-   """A simple hello response from the Bot"""
+   """A hello response from the Bot"""
 
-   # Responds in the console that the command has been ran
+   # Respond in the console that the command has been ran
    print(f"> {interaction.user} used the hello command.")
 
    # Respond with a simple hello
@@ -75,10 +81,11 @@ async def _init_command_hello_response(interaction: Interaction) -> None:
       "A charming Merry Christmas to you :)",
    ]))
 
+# Function for Star Wars
 async def _init_command_starwars_response(interaction: Interaction) -> None:
     """A function to response with a starwars meme"""
 
-    # Responds in the console that the command has been ran
+    # Respond in the console that the command has been ran
     print(f"> {interaction.user} used the starwars command.")
 
     async with aiohttp.ClientSession() as session:
@@ -88,23 +95,105 @@ async def _init_command_starwars_response(interaction: Interaction) -> None:
             data = io.BytesIO(await resp.read())
             await interaction.response.send_message(file=File(data, "star_wars.png"))
 
-    """
-    # Respond with the meme
-    embed = Embed()
-    embed.set_image(url="https://media.discordapp.net/attachments/732222852606066788/1052919738034045008/fc5ed98c2b4952971ec03a495fc85d73.png")
-    await interaction.response.send_message(embed=embed)
-    """
+# Function for a Meme from r/memes
+# https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html#praw.models.Subreddit.top
+# https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html#praw.models.Subreddit.random
+async def _init_command_meme_response(interaction: Interaction) -> None:
+    """A function to send a random meme using reddit api"""
 
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.user} used the meme command.")
+
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    # Reddit API Session
+    #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
+    async with aiohttp.ClientSession() as reddit_session:
+        reddit = asyncpraw.Reddit(
+            client_id = config_data.get("client_id"),
+            client_secret = config_data.get("client_secret"),
+            redirect_uri = config_data.get("redirect_uri"),
+            requestor_kwargs = {"session": reddit_session},
+            user_agent = config_data.get("user_agent"),
+            check_for_async=False)
+        reddit.read_only = True
+
+        #await asyncio.sleep(0.5)
+
+        # Respond with a meme from reddit
+        subreddit = await reddit.subreddit("memes")
+        submission = await subreddit.random()
+
+        # Convert Submission into picture and send it to Discord
+        async with reddit_session.get(submission.url) as resp:
+            if resp.status != 200:
+                return await interaction.followup.send("Could not download file...")
+            data = io.BytesIO(await resp.read())
+            await interaction.followup.send(file=File(data, "reddit_meme.png"))
+
+
+async def _init_command_gif_response(interaction: Interaction) -> None:
+    """A function to send a random gif using reddit api"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.user} used the gifs command.")
+
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    # Reddit API Session
+    #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
+    async with aiohttp.ClientSession() as reddit_session:
+        reddit = asyncpraw.Reddit(
+            client_id = config_data.get("client_id"),
+            client_secret = config_data.get("client_secret"),
+            redirect_uri = config_data.get("redirect_uri"),
+            requestor_kwargs = {"session": reddit_session},
+            user_agent = config_data.get("user_agent"),
+            check_for_async=False)
+        reddit.read_only = True
+
+        #await asyncio.sleep(0.5)
+
+        # Respond with a meme from reddit
+        subreddit = await reddit.subreddit("gifs")
+        submission = await subreddit.random()
+
+        # Convert Submission into picture and send it to Discord
+        async with reddit_session.get(submission.url) as resp:
+            if resp.status != 200:
+                return await interaction.followup.send("Could not download file...")
+            data = io.BytesIO(await resp.read())
+            await interaction.followup.send(file=File(data, "reddit_gif.gif"))
+
+
+# Command for Hello
 @client.tree.command()
 async def hello(interaction: Interaction):
-   """A new hello defined by me"""
+   """A hello defined by me"""
    # Calls the function "_init_command_simple_response" to respond to the command
    await _init_command_hello_response(interaction)
 
+# Command for Star Wars
 @client.tree.command()
 async def starwars(interaction: Interaction):
     """Send a starwars meme as response"""
     await _init_command_starwars_response(interaction)
+
+# Command for a Meme from r/memes
+@client.tree.command()
+async def meme(interaction: Interaction):
+    """Send a random meme using reddit api"""
+    await _init_command_meme_response(interaction)
+
+# Command for a GIF from r/gifs
+@client.tree.command()
+async def gifs(interaction: Interaction):
+    """Send a random gif using reddit api"""
+    await _init_command_gif_response(interaction)
 
 
 # Runs the bot with the token you provided
