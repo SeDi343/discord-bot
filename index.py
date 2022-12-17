@@ -96,8 +96,6 @@ async def _init_command_starwars_response(interaction: Interaction) -> None:
             await interaction.response.send_message(file=File(data, "star_wars.png"))
 
 # Function for a Meme from r/memes
-# https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html#praw.models.Subreddit.top
-# https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html#praw.models.Subreddit.random
 async def _init_command_meme_response(interaction: Interaction) -> None:
     """A function to send a random meme using reddit api"""
 
@@ -109,71 +107,65 @@ async def _init_command_meme_response(interaction: Interaction) -> None:
     await interaction.response.defer()
 
     # Reddit API Session
-    #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
-    async with aiohttp.ClientSession() as reddit_session:
-        reddit = asyncpraw.Reddit(
-            client_id = config_data.get("client_id"),
-            client_secret = config_data.get("client_secret"),
-            redirect_uri = config_data.get("redirect_uri"),
-            requestor_kwargs = {"session": reddit_session},
-            user_agent = config_data.get("user_agent"),
-            check_for_async=False)
-        reddit.read_only = True
+    try:
+        #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
+        async with aiohttp.ClientSession() as reddit_session:
+            reddit = asyncpraw.Reddit(
+                client_id = config_data.get("client_id"),
+                client_secret = config_data.get("client_secret"),
+                redirect_uri = config_data.get("redirect_uri"),
+                requestor_kwargs = {"session": reddit_session},
+                user_agent = config_data.get("user_agent"),
+                check_for_async=False)
+            reddit.read_only = True
 
-        #await asyncio.sleep(0.5)
+            # Respond with a meme from reddit
+            subreddit = await reddit.subreddit("memes")
+            submission = await subreddit.random()
 
-        # Respond with a meme from reddit
-        subreddit = await reddit.subreddit("memes")
-        submission = await subreddit.random()
-
-        # Convert Submission into picture and send it to Discord
-        async with reddit_session.get(submission.url) as resp:
-            if resp.status != 200:
-                return await interaction.followup.send("Could not download file...")
-            data = io.BytesIO(await resp.read())
-            await interaction.followup.send(file=File(data, "reddit_meme.png"))
+            # Convert Submission into picture and send it to Discord
+            await interaction.followup.send(submission.url)
+    except:
+        return await interaction.followup.send("Could not send picture...")
 
 
 async def _init_command_gif_response(interaction: Interaction) -> None:
     """A function to send a random gif using reddit api"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the gifs command.")
+    print(f"> {interaction.user} used the gif command.")
 
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
 
     # Reddit API Session
-    #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
-    async with aiohttp.ClientSession() as reddit_session:
-        reddit = asyncpraw.Reddit(
-            client_id = config_data.get("client_id"),
-            client_secret = config_data.get("client_secret"),
-            redirect_uri = config_data.get("redirect_uri"),
-            requestor_kwargs = {"session": reddit_session},
-            user_agent = config_data.get("user_agent"),
-            check_for_async=False)
-        reddit.read_only = True
+    try:
+        #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
+        async with aiohttp.ClientSession() as reddit_session:
+            reddit = asyncpraw.Reddit(
+                client_id = config_data.get("client_id"),
+                client_secret = config_data.get("client_secret"),
+                redirect_uri = config_data.get("redirect_uri"),
+                requestor_kwargs = {"session": reddit_session},
+                user_agent = config_data.get("user_agent"),
+                check_for_async=False)
+            reddit.read_only = True
 
-        #await asyncio.sleep(0.5)
+            # Respond with a meme from reddit
+            subreddit = await reddit.subreddit("gifs")
+            submission = await subreddit.random()
 
-        # Respond with a meme from reddit
-        subreddit = await reddit.subreddit("gifs")
-        submission = await subreddit.random()
-
-        # Convert Submission into picture and send it to Discord
-        async with reddit_session.get(submission.url) as resp:
-            if resp.status != 200:
-                return await interaction.followup.send("Could not download file...")
-            data = io.BytesIO(await resp.read())
-            await interaction.followup.send(file=File(data, "reddit_gif.gif"))
+            # Convert Submission into picture and send it to Discord
+            await interaction.followup.send(submission.url)
+    except:
+        return await interaction.followup.send("Could not send gif...")
 
 
 # Command for Hello
 @client.tree.command()
 async def hello(interaction: Interaction):
-   """A hello defined by me"""
+   """A simple hello as a return"""
    # Calls the function "_init_command_simple_response" to respond to the command
    await _init_command_hello_response(interaction)
 
@@ -191,7 +183,7 @@ async def meme(interaction: Interaction):
 
 # Command for a GIF from r/gifs
 @client.tree.command()
-async def gifs(interaction: Interaction):
+async def gif(interaction: Interaction):
     """Send a random gif using reddit api"""
     await _init_command_gif_response(interaction)
 
