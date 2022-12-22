@@ -189,7 +189,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     """A function to check how many days a given user has left"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the vipleft command.")
+    print(f"> {interaction.user} used the vipstatus command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -204,65 +204,73 @@ async def _init_command_vipinfo_response(interaction: Interaction):
 
     # Continue only when User has VIP
     if has_vip:
-        #try:
-        # Connect to Dropbox
-        dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
-                                        oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
-                                        oauth2_access_token_expiration = datetime.strptime(config_data.get("dropbox_token_expire"), "%Y-%m-%d %H:%M:%S.%f"),
-                                        app_key = config_data.get("dropbox_app_key"),
-                                        app_secret = config_data.get("dropbox_app_secret"),
-                                        user_agent = config_data.get("dropbox_user_agent"))
+        try:
+            # Read Config File
+            async with aiofiles.open("config.json", 'r') as jsonfile:
+                raw_json = await jsonfile.read()
+                config_data = json.loads(raw_json)
 
-        # Check if Dropbox Access Token is still valid
-        old_dropbox_token = dropbox_cloud._oauth2_access_token
-        dropbox.Dropbox.check_and_refresh_access_token(dropbox_cloud)
-        new_dropbox_token = dropbox_cloud._oauth2_access_token
+            # Connect to Dropbox
+            dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
+                                            oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
+                                            oauth2_access_token_expiration = datetime.strptime(config_data.get("dropbox_token_expire"), "%Y-%m-%d %H:%M:%S.%f"),
+                                            app_key = config_data.get("dropbox_app_key"),
+                                            app_secret = config_data.get("dropbox_app_secret"),
+                                            user_agent = config_data.get("dropbox_user_agent"))
 
-        # If there is a new Dropbox Token available, save it into json and create new dropbox session
-        if old_dropbox_token != new_dropbox_token:
-            print(" > Dropbox Access Token is expired. Refreshing...")
-            async with aiofiles.open("config.json", mode="w") as jsonfile:
-                config_data["dropbox_token"] = new_dropbox_token
-                config_data["dropbox_token_expire"] = str(datetime.utcnow() + timedelta(seconds=14400))
-                jsonstring = json.dumps(config_data, indent=4)
-                await jsonfile.write(jsonstring)
+            # Check if Dropbox Access Token is still valid
+            old_dropbox_token = dropbox_cloud._oauth2_access_token
+            dropbox.Dropbox.check_and_refresh_access_token(dropbox_cloud)
+            new_dropbox_token = dropbox_cloud._oauth2_access_token
 
-            # Create an new dropbox session
-            dropbox_cloud = dropbox.Dropbox.clone(dropbox_cloud, oauth2_access_token = new_dropbox_token)
+            # If there is a new Dropbox Token available, save it into json and create new dropbox session
+            if old_dropbox_token != new_dropbox_token:
+                print(" > Dropbox Access Token is expired. Refreshing...")
+                async with aiofiles.open("config.json", mode="w") as jsonfile:
+                    config_data["dropbox_token"] = new_dropbox_token
+                    config_data["dropbox_token_expire"] = str(datetime.utcnow() + timedelta(seconds=14400))
+                    jsonstring = json.dumps(config_data, indent=4)
+                    await jsonfile.write(jsonstring)
 
-        dropbox_path = config_data.get("dropbox_filepath")
+                # Create an new dropbox session
+                dropbox_cloud = dropbox.Dropbox.clone(dropbox_cloud, oauth2_access_token = new_dropbox_token)
 
-        # Download File
-        async with aiofiles.open("temp.xlsx", mode="wb") as dropbox_file:
-            _,dropbox_download = dropbox_cloud.files_download(dropbox_path)
-            await dropbox_file.write(dropbox_download.content)
+            dropbox_path = config_data.get("dropbox_filepath")
 
-        # Read out File
-        async with aiofiles.open("temp.xlsx", mode="rb") as dropbox_file:
-            dropbox_content = await dropbox_file.read()
-            dropbox_excel = pandas.read_excel(dropbox_content)
-            excel_output = pandas.DataFrame(data=dropbox_excel)
-            excel_json = json.loads(excel_output.to_json())
+            # Download File
+            async with aiofiles.open("temp.xlsx", mode="wb") as dropbox_file:
+                _,dropbox_download = dropbox_cloud.files_download(dropbox_path)
+                await dropbox_file.write(dropbox_download.content)
 
-            # Find User based on Discord User in Excel Sheet
-            keyentry = False
+            # Read out File
+            async with aiofiles.open("temp.xlsx", mode="rb") as dropbox_file:
+                dropbox_content = await dropbox_file.read()
+                dropbox_excel = pandas.read_excel(dropbox_content)
+                excel_output = pandas.DataFrame(data=dropbox_excel)
+                excel_json = json.loads(excel_output.to_json())
 
-            discord_users = excel_json.get("Unnamed: 2")
+                # Find User based on Discord User in Excel Sheet
+                keyentry = False
 
-            for key, user in discord_users.items():
-                # First 4 Entries are no valid Entries
-                if user == str(interaction.user) and int(key) >= 5:
-                    keyentry = key
-                    break
+                discord_users = excel_json.get("Unnamed: 2")
 
-            # Find remaining days for given User
-            if keyentry == False:
-                # If User was not found
-                return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server.")
-            else:
-                # Send information how many days a user has VIP left if User was found
-                time_left = excel_json.get("Unnamed: 5", {}).get(str(keyentry))
-                await interaction.followup.send(f"{interaction.user.mention} has VIP for **{time_left}** days left!")
+                for key, user in discord_users.items():
+                    # First 4 Entries are no valid Entries
+                    if user == str(interaction.user) and int(key) >= 5:
+                        keyentry = key
+                        break
+
+                # Find remaining days for given User
+                if keyentry == False:
+                    # If User was not found
+                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server.")
+                else:
+                    # Send information how many days a user has VIP left if User was found
+                    time_left = excel_json.get("Unnamed: 5", {}).get(str(keyentry))
+                    await interaction.followup.send(f"{interaction.user.mention} has VIP for **{time_left}** days left!")
+        except Exception as e:
+            print(f" > Exception occured processing vipstatus: {e}")
+            return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
 
     # If User is not VIP
     else:
