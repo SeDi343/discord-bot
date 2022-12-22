@@ -184,6 +184,58 @@ async def _init_command_art_response(interaction: Interaction):
         return await interaction.followup.send("Could not send picture...")
 
 
+# Function to receive quote of the day
+async def _init_command_qod_response(interaction: Interaction):
+    """A function to send a qod quote"""
+
+    # Repsond in the console that the command has ben ran
+    print(f"> {interaction.user} used the qod command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            quote_url = "https://zenquotes.io/api/today"
+            async with session.get(quote_url) as response:
+                if response.status == 200:
+                    quote = await response.json()
+                    quote_str = quote[0].get("q")
+                    author_str = quote[0].get("a")
+                    await interaction.followup.send(f"{quote_str} - {author_str}")
+                else:
+                    await interaction.followup.send(f"{response.status}: Could not send quote of the day...")
+    except Exception as e:
+        print(f" > Exception occured processing quote: {e}")
+        return await interaction.followup.send(f"Exception occured processing qod. Please contact <@164129430766092289> when this happened.")
+
+
+# Function to receive a random quote
+async def _init_command_quote_response(interaction: Interaction):
+    """A function to send a random quote """
+
+    # Repsond in the console that the command has ben ran
+    print(f"> {interaction.user} used the quote command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            quote_url = "https://zenquotes.io/api/random"
+            async with session.get(quote_url) as response:
+                if response.status == 200:
+                    quote = await response.json()
+                    quote_str = quote[0].get("q")
+                    author_str = quote[0].get("a")
+                    await interaction.followup.send(f"{quote_str} - {author_str}")
+                else:
+                    await interaction.followup.send(f"{response.status}: Could not send quote...")
+    except Exception as e:
+        print(f" > Exception occured processing quote: {e}")
+        return await interaction.followup.send(f"Exception occured processing quote. Please contact <@164129430766092289> when this happened.")
+
+
 # Function for VIPs to check how many days they have left
 async def _init_command_vipinfo_response(interaction: Interaction):
     """A function to check how many days a given user has left"""
@@ -311,6 +363,16 @@ async def gif(interaction: Interaction):
 async def art(interaction: Interaction):
     """Send a random art using reddit api"""
     await _init_command_art_response(interaction)
+
+@client.tree.command()
+async def qod(interaction: Interaction):
+    """Send the quote of the day"""
+    await _init_command_qod_response(interaction)
+
+@client.tree.command()
+async def quote(interaction: Interaction):
+    """Send a random quote"""
+    await _init_command_quote_response(interaction)
 
 # Command to check remaining days VIP
 @client.tree.command(guild = Object(id = 1047547059433119774))
