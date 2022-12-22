@@ -208,7 +208,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
         # Connect to Dropbox
         dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
                                         oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
-                                        oauth2_access_token_expiration = datetime.utcnow() + timedelta(seconds=14400),
+                                        oauth2_access_token_expiration = datetime.strptime(config_data.get("dropbox_token_expire"), "%Y-%m-%d %H:%M:%S.%f"),
                                         app_key = config_data.get("dropbox_app_key"),
                                         app_secret = config_data.get("dropbox_app_secret"),
                                         user_agent = config_data.get("dropbox_user_agent"))
@@ -223,6 +223,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
             print(" > Dropbox Access Token is expired. Refreshing...")
             async with aiofiles.open("config.json", mode="w") as jsonfile:
                 config_data["dropbox_token"] = new_dropbox_token
+                config_data["dropbox_token_expire"] = str(datetime.utcnow() + timedelta(seconds=14400))
                 jsonstring = json.dumps(config_data, indent=4)
                 await jsonfile.write(jsonstring)
 
@@ -305,7 +306,7 @@ async def art(interaction: Interaction):
 
 # Command to check remaining days VIP
 @client.tree.command(guild = Object(id = 1047547059433119774))
-async def vipinfo(interaction: Interaction):
+async def vipstatus(interaction: Interaction):
     """Command to check how many days a vip has left"""
     await _init_command_vipinfo_response(interaction)
 
