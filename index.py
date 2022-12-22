@@ -12,6 +12,7 @@ import asyncpraw
 import aiofiles
 import dropbox
 import pandas
+from datetime import datetime, timedelta
 from discord import app_commands, Intents, Client, Interaction, File, Object
 
 #########################################################################################
@@ -207,6 +208,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
         # Connect to Dropbox
         dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
                                         oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
+                                        oauth2_access_token_expiration = datetime.utcnow() + timedelta(seconds=14400),
                                         app_key = config_data.get("dropbox_app_key"),
                                         app_secret = config_data.get("dropbox_app_secret"),
                                         user_agent = config_data.get("dropbox_user_agent"))
