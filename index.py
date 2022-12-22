@@ -9,13 +9,19 @@ import json
 import io
 import aiohttp
 import asyncpraw
-import asyncio
-from discord import app_commands, Intents, Client, Interaction, Embed, File
+import aiofiles
+import dropbox
+import pandas
+from discord import app_commands, Intents, Client, Interaction, File, Object
+
+#########################################################################################
+# Requirements for Discord Bot
+#########################################################################################
 
 # Read config file
 with open("config.json", 'r') as jsonfile:
     config_data = json.load(jsonfile)
-    token = config_data.get("token")
+    token = config_data.get("discord_token")
 
 # Check if Token is valid
 r = requests.get("https://discord.com/api/v10/users/@me", headers={
@@ -38,20 +44,22 @@ print("\n".join([
 
 # Main Class to response in Discord
 class ChatResponse(Client):
-    def __init__(self, *, intents: Intents):
-        super().__init__(intents=intents)
+    def __init__(self):
+        super().__init__(intents = Intents.default())
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
         """ This is called when the bot boots, to setup the global commands """
-        await self.tree.sync(guild=None)
-
+        await self.tree.sync(guild = None)
 
 # Variable to store the bot class and interact with it
 # Since this is a simple bot to run 1 command over slash commands
 # We then do not need any intents to listen to events
-client = ChatResponse(intents=Intents.none())
+client = ChatResponse()
 
+#########################################################################################
+# Start Up
+#########################################################################################
 
 @client.event
 async def on_ready():
@@ -66,9 +74,15 @@ async def on_ready():
         f"https://discord.com/api/oauth2/authorize?client_id={client.user.id}&scope=applications.commands%20bot"
     ]))
 
+    await client.tree.sync(guild = Object(id = 1047547059433119774))
+
+
+#########################################################################################
+# Functions
+#########################################################################################
 
 # Function for a Hello
-async def _init_command_hello_response(interaction: Interaction) -> None:
+async def _init_command_hello_response(interaction: Interaction):
    """A hello response from the Bot"""
 
    # Respond in the console that the command has been ran
@@ -81,8 +95,9 @@ async def _init_command_hello_response(interaction: Interaction) -> None:
       "A charming Merry Christmas to you :)",
    ]))
 
+
 # Function for Star Wars
-async def _init_command_starwars_response(interaction: Interaction) -> None:
+async def _init_command_starwars_response(interaction: Interaction):
     """A function to response with a starwars meme"""
 
     # Respond in the console that the command has been ran
@@ -95,72 +110,165 @@ async def _init_command_starwars_response(interaction: Interaction) -> None:
             data = io.BytesIO(await resp.read())
             await interaction.response.send_message(file=File(data, "star_wars.png"))
 
+
+# Reddit API Function
+async def _reddit_api_request(subreddit_string):
+    try:
+        #async with aiohttp.ClientSession(trust_env=True) as session:
+        async with aiohttp.ClientSession() as session:
+            reddit = asyncpraw.Reddit(
+                client_id = config_data.get("reddit_client_id"),
+                client_secret = config_data.get("reddit_client_secret"),
+                redirect_uri = config_data.get("reddit_redirect_uri"),
+                requestor_kwargs = {"session": session},
+                user_agent = config_data.get("reddit_user_agent"),
+                check_for_async=False)
+            reddit.read_only = True
+
+            # Respond with a meme from reddit
+            subreddit = await reddit.subreddit(subreddit_string)
+            return await subreddit.random()
+    except:
+        return False
+
+
 # Function for a Meme from r/memes
-async def _init_command_meme_response(interaction: Interaction) -> None:
+async def _init_command_meme_response(interaction: Interaction):
     """A function to send a random meme using reddit api"""
 
     # Respond in the console that the command has been ran
     print(f"> {interaction.user} used the meme command.")
 
-
     # Tell Discord that Request takes some time
     await interaction.response.defer()
 
-    # Reddit API Session
     try:
-        #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
-        async with aiohttp.ClientSession() as reddit_session:
-            reddit = asyncpraw.Reddit(
-                client_id = config_data.get("client_id"),
-                client_secret = config_data.get("client_secret"),
-                redirect_uri = config_data.get("redirect_uri"),
-                requestor_kwargs = {"session": reddit_session},
-                user_agent = config_data.get("user_agent"),
-                check_for_async=False)
-            reddit.read_only = True
-
-            # Respond with a meme from reddit
-            subreddit = await reddit.subreddit("memes")
-            submission = await subreddit.random()
-
-            # Convert Submission into picture and send it to Discord
-            await interaction.followup.send(submission.url)
+        submission = await _reddit_api_request("meme")
+        await interaction.followup.send(submission.url)
     except:
         return await interaction.followup.send("Could not send picture...")
 
 
-async def _init_command_gif_response(interaction: Interaction) -> None:
+# Function for a GIF from r/gifs
+async def _init_command_gif_response(interaction: Interaction):
     """A function to send a random gif using reddit api"""
 
     # Respond in the console that the command has been ran
     print(f"> {interaction.user} used the gif command.")
 
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    try:
+        submission = await _reddit_api_request("gifs")
+        await interaction.followup.send(submission.url)
+    except:
+        return await interaction.followup.send("Could not send gif...")
+
+
+# Function for an ART from r/art
+async def _init_command_art_response(interaction: Interaction):
+    """A function to send a random art using reddit api"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.user} used the art command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
 
-    # Reddit API Session
     try:
-        #async with aiohttp.ClientSession(trust_env=True) as reddit_session:
-        async with aiohttp.ClientSession() as reddit_session:
-            reddit = asyncpraw.Reddit(
-                client_id = config_data.get("client_id"),
-                client_secret = config_data.get("client_secret"),
-                redirect_uri = config_data.get("redirect_uri"),
-                requestor_kwargs = {"session": reddit_session},
-                user_agent = config_data.get("user_agent"),
-                check_for_async=False)
-            reddit.read_only = True
-
-            # Respond with a meme from reddit
-            subreddit = await reddit.subreddit("gifs")
-            submission = await subreddit.random()
-
-            # Convert Submission into picture and send it to Discord
-            await interaction.followup.send(submission.url)
+        submission = await _reddit_api_request("art")
+        await interaction.followup.send(submission.url)
     except:
-        return await interaction.followup.send("Could not send gif...")
+        return await interaction.followup.send("Could not send picture...")
 
+
+# Function for VIPs to check how many days they have left
+async def _init_command_vipinfo_response(interaction: Interaction):
+    """A function to check how many days a given user has left"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.user} used the vipleft command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    # Variable for VIP
+    has_vip = False
+
+    # Check if User has Discord Role "FEIERABEND VIPS"
+    for role in interaction.user.roles:
+        if role.name == "Feierabend VIPs":
+            has_vip = True
+
+    # Continue only when User has VIP
+    if has_vip:
+        #try:
+        # Connect to Dropbox
+        dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
+                                        oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
+                                        app_key = config_data.get("dropbox_app_key"),
+                                        app_secret = config_data.get("dropbox_app_secret"),
+                                        user_agent = config_data.get("dropbox_user_agent"))
+
+        # Check if Dropbox Access Token is still valid
+        old_dropbox_token = dropbox_cloud._oauth2_access_token
+        dropbox.Dropbox.check_and_refresh_access_token(dropbox_cloud)
+        new_dropbox_token = dropbox_cloud._oauth2_access_token
+
+        # If there is a new Dropbox Token available, save it into json and create new dropbox session
+        if old_dropbox_token != new_dropbox_token:
+            print(" > Dropbox Access Token is expired. Refreshing...")
+            async with aiofiles.open("config.json", mode="w") as jsonfile:
+                config_data["dropbox_token"] = new_dropbox_token
+                jsonstring = json.dumps(config_data, indent=4)
+                await jsonfile.write(jsonstring)
+
+            # Create an new dropbox session
+            dropbox_cloud = dropbox.Dropbox.clone(dropbox_cloud, oauth2_access_token = new_dropbox_token)
+
+        dropbox_path = config_data.get("dropbox_filepath")
+
+        # Download File
+        async with aiofiles.open("temp.xlsx", mode="wb") as dropbox_file:
+            _,dropbox_download = dropbox_cloud.files_download(dropbox_path)
+            await dropbox_file.write(dropbox_download.content)
+
+        # Read out File
+        async with aiofiles.open("temp.xlsx", mode="rb") as dropbox_file:
+            dropbox_content = await dropbox_file.read()
+            dropbox_excel = pandas.read_excel(dropbox_content)
+            excel_output = pandas.DataFrame(data=dropbox_excel)
+            excel_json = json.loads(excel_output.to_json())
+
+            # Find User based on Discord User in Excel Sheet
+            keyentry = False
+
+            discord_users = excel_json.get("Unnamed: 2")
+
+            for key, user in discord_users.items():
+                # First 4 Entries are no valid Entries
+                if user == str(interaction.user) and int(key) >= 5:
+                    keyentry = key
+                    break
+
+            # Find remaining days for given User
+            if keyentry == False:
+                # If User was not found
+                return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server.")
+            else:
+                # Send information how many days a user has VIP left if User was found
+                time_left = excel_json.get("Unnamed: 5", {}).get(str(keyentry))
+                await interaction.followup.send(f"{interaction.user.mention} has VIP for **{time_left}** days left!")
+
+    # If User is not VIP
+    else:
+        return await interaction.followup.send(f"It seems like you do not have VIP on this Server")
+
+
+#########################################################################################
+# Commands
+#########################################################################################
 
 # Command for Hello
 @client.tree.command()
@@ -187,6 +295,21 @@ async def gif(interaction: Interaction):
     """Send a random gif using reddit api"""
     await _init_command_gif_response(interaction)
 
+# Command for an art from r/art
+@client.tree.command()
+async def art(interaction: Interaction):
+    """Send a random art using reddit api"""
+    await _init_command_art_response(interaction)
+
+# Command to check remaining days VIP
+@client.tree.command(guild = Object(id = 1047547059433119774))
+async def vipinfo(interaction: Interaction):
+    """Command to check how many days a vip has left"""
+    await _init_command_vipinfo_response(interaction)
+
+#########################################################################################
+# Server Start
+#########################################################################################
 
 # Runs the bot with the token you provided
 client.run(token)
