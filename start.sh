@@ -1,1 +1,1 @@
-screen -dmS discordbot python3 index.py
+screen -dmS discordbot python3.11 index.py
