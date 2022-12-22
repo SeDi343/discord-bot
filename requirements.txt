@@ -3,3 +3,7 @@ requests
 asyncpraw
 asyncio
 aiohttp
+dropbox
+pandas
+aiofiles
+openpyxl
