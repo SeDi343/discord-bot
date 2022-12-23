@@ -87,7 +87,7 @@ async def _init_command_hello_response(interaction: Interaction):
    """A hello response from the Bot"""
 
    # Respond in the console that the command has been ran
-   print(f"> {interaction.user} used the hello command.")
+   print(f"> {interaction.guild} : {interaction.user} used the hello command.")
 
    # Respond with a simple hello
    await interaction.response.send_message("\n".join([
@@ -102,7 +102,7 @@ async def _init_command_starwars_response(interaction: Interaction):
     """A function to response with a starwars meme"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the starwars command.")
+    print(f"> {interaction.guild} : {interaction.user} used the starwars command.")
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://media.discordapp.net/attachments/732222852606066788/1052919738034045008/fc5ed98c2b4952971ec03a495fc85d73.png") as resp:
@@ -138,7 +138,7 @@ async def _init_command_meme_response(interaction: Interaction):
     """A function to send a random meme using reddit api"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the meme command.")
+    print(f"> {interaction.guild} : {interaction.user} used the meme command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -155,7 +155,7 @@ async def _init_command_gif_response(interaction: Interaction):
     """A function to send a random gif using reddit api"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the gif command.")
+    print(f"> {interaction.guild} : {interaction.user} used the gif command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -172,7 +172,7 @@ async def _init_command_art_response(interaction: Interaction):
     """A function to send a random art using reddit api"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the art command.")
+    print(f"> {interaction.guild} : {interaction.user} used the art command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -189,7 +189,7 @@ async def _init_command_qod_response(interaction: Interaction):
     """A function to send a qod quote"""
 
     # Repsond in the console that the command has ben ran
-    print(f"> {interaction.user} used the qod command.")
+    print(f"> {interaction.guild} : {interaction.user} used the qod command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -215,7 +215,7 @@ async def _init_command_quote_response(interaction: Interaction):
     """A function to send a random quote """
 
     # Repsond in the console that the command has ben ran
-    print(f"> {interaction.user} used the quote command.")
+    print(f"> {interaction.guild} : {interaction.user} used the quote command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -241,7 +241,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     """A function to check how many days a given user has left"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.user} used the vipstatus command.")
+    print(f"> {interaction.guild} : {interaction.user} used the vipstatus command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -315,7 +315,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                 # Find remaining days for given User
                 if keyentry == False:
                     # If User was not found
-                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server.")
+                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server or have a lifetime membership.")
                 else:
                     # Send information how many days a user has VIP left if User was found
                     time_left = excel_json.get("Unnamed: 5", {}).get(str(keyentry))
@@ -327,6 +327,21 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     # If User is not VIP
     else:
         return await interaction.followup.send(f"It seems like you do not have VIP on this Server")
+
+
+# Function for Gameserver connect command response
+async def _init_command_ip_response(interaction: Interaction):
+    """A gameserver connect command response from the Bot"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the ip command.")
+
+    # Respond with the connection command
+    await interaction.response.send_message("\n".join([
+        f"Hey {interaction.user.mention}, following you find the commands for the F1 console to connect to the server",
+        "",
+        "**client.connect gameserver.rust-feierabend.de:25000**"
+    ]))
 
 
 #########################################################################################
@@ -364,11 +379,13 @@ async def art(interaction: Interaction):
     """Send a random art using reddit api"""
     await _init_command_art_response(interaction)
 
+# Command for quote of the day
 @client.tree.command()
 async def qod(interaction: Interaction):
     """Send the quote of the day"""
     await _init_command_qod_response(interaction)
 
+# Command for a random quote
 @client.tree.command()
 async def quote(interaction: Interaction):
     """Send a random quote"""
@@ -379,6 +396,12 @@ async def quote(interaction: Interaction):
 async def vipstatus(interaction: Interaction):
     """Command to check how many days a vip has left"""
     await _init_command_vipinfo_response(interaction)
+
+# Command to check connect command for gameserver
+@client.tree.command(guild = Object(id = 1047547059433119774))
+async def ip(interaction: Interaction):
+    """Command to check gameserver connect command"""
+    await _init_command_ip_response(interaction)
 
 #########################################################################################
 # Server Start
