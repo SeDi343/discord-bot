@@ -10,6 +10,7 @@ import json
 import io
 import aiohttp
 import asyncpraw
+import asyncprawcore
 import aiofiles
 import dropbox
 import pandas
@@ -128,11 +129,17 @@ async def _reddit_api_request(subreddit_string):
                 check_for_async=False)
             reddit.read_only = True
 
-            # Respond with a meme from reddit
+            # Check if Subreddit exists
+            try:
+                subreddit = [sub async for sub in reddit.subreddits.search_by_name(subreddit_string, exact=True)]
+            except asyncprawcore.exceptions.NotFound:
+                print(f" > Exception: Subreddit not found")
+                raise
+
+            # Respond with content from reddit
             subreddit = await reddit.subreddit(subreddit_string)
             return await subreddit.random()
     except Exception:
-        print(f" > Exception occured processing _reddit_api_request: {traceback.print_exc()}")
         raise
 
 
