@@ -12,6 +12,7 @@ import asyncpraw
 import aiofiles
 import dropbox
 import pandas
+import traceback
 from datetime import datetime, timedelta
 from discord import app_commands, Intents, Client, Interaction, File, Object
 
@@ -205,8 +206,8 @@ async def _init_command_qod_response(interaction: Interaction):
                     await interaction.followup.send(f"{quote_str} - {author_str}")
                 else:
                     await interaction.followup.send(f"{response.status}: Could not send quote of the day...")
-    except Exception as e:
-        print(f" > Exception occured processing quote: {e}")
+    except Exception:
+        print(f" > Exception occured processing quote: {traceback.print_exc()}")
         return await interaction.followup.send(f"Exception occured processing qod. Please contact <@164129430766092289> when this happened.")
 
 
@@ -231,8 +232,8 @@ async def _init_command_quote_response(interaction: Interaction):
                     await interaction.followup.send(f"{quote_str} - {author_str}")
                 else:
                     await interaction.followup.send(f"{response.status}: Could not send quote...")
-    except Exception as e:
-        print(f" > Exception occured processing quote: {e}")
+    except Exception:
+        print(f" > Exception occured processing quote: {traceback.print_exc()}")
         return await interaction.followup.send(f"Exception occured processing quote. Please contact <@164129430766092289> when this happened.")
 
 
@@ -297,7 +298,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
             # Read out File
             async with aiofiles.open("temp.xlsx", mode="rb") as dropbox_file:
                 dropbox_content = await dropbox_file.read()
-                dropbox_excel = pandas.read_excel(dropbox_content)
+                dropbox_excel = pandas.read_excel(dropbox_content, header=3)
                 excel_output = pandas.DataFrame(data=dropbox_excel)
                 excel_json = json.loads(excel_output.to_json())
 
@@ -315,15 +316,21 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                 # Find remaining days for given User
                 if keyentry == False:
                     # If User was not found
-                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you no longer have VIP on this Server or have a lifetime membership.")
+                    return await interaction.followup.send(f"{interaction.user.mention} you no longer have VIP on this Server or have a lifetime membership.")
                 else:
                     # Send information how many days a user has VIP left if User was found
-                    time_left = excel_json.get("Unnamed: 5", {}).get(str(keyentry))
-                    await interaction.followup.send(f"{interaction.user.mention} has VIP for **{time_left}** days left!")
-        except Exception as e:
-            print(f" > Exception occured processing vipstatus: {e}")
-            return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
+                    time_now = datetime.utcnow()
+                    time_end = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(keyentry)])
 
+                    time_left = time_end - time_now
+
+                    if time_left.days >= 0:
+                        await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} days** left!")
+                    else:
+                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired**!")
+        except Exception:
+            print(f" > Exception occured processing vipstatus: {traceback.print_exc()}")
+            return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
     # If User is not VIP
     else:
         return await interaction.followup.send(f"It seems like you do not have VIP on this Server")
