@@ -5,6 +5,7 @@
 # Imports
 import sys
 import requests
+import mimetypes
 import json
 import io
 import aiohttp
@@ -99,11 +100,11 @@ async def _init_command_hello_response(interaction: Interaction):
 
 
 # Function for Star Wars
-async def _init_command_starwars_response(interaction: Interaction):
+async def _init_command_starwars_static_response(interaction: Interaction):
     """A function to response with a starwars meme"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.guild} : {interaction.user} used the starwars command.")
+    print(f"> {interaction.guild} : {interaction.user} used the starwars stattic command.")
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://media.discordapp.net/attachments/732222852606066788/1052919738034045008/fc5ed98c2b4952971ec03a495fc85d73.png") as resp:
@@ -130,8 +131,42 @@ async def _reddit_api_request(subreddit_string):
             # Respond with a meme from reddit
             subreddit = await reddit.subreddit(subreddit_string)
             return await subreddit.random()
-    except:
-        return False
+    except Exception:
+        print(f" > Exception occured processing _reddit_api_request: {traceback.print_exc()}")
+        raise
+
+
+# Function for a picture, gif from any given subreddit
+async def _init_command_reddit_response(interaction: Interaction, subreddit):
+    """A function to send a picture, gif from any given subreddit"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the reddit command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    # Check if parameter is a string
+    if not isinstance(subreddit, str):
+        return await interaction.followup.send(f"Exception, Parameter needs to be a string")
+
+    try:
+        extension = None
+
+        # Make sure the extension of the URL is jpg, png or gif
+        while extension not in(".jpg", ".png", ".gif"):
+            submission = await _reddit_api_request(subreddit)
+
+            # Check extension of submission url
+            response = requests.get(submission.url)
+            content_type = response.headers["content-type"]
+            extension = mimetypes.guess_extension(content_type)
+
+        # Send Content in Discord
+        await interaction.followup.send(submission.url)
+    except Exception:
+        print(f" > Exception occured processing starwars: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing starwars. Please contact <@164129430766092289> when this happened.")
 
 
 # Function for a Meme from r/memes
@@ -147,8 +182,38 @@ async def _init_command_meme_response(interaction: Interaction):
     try:
         submission = await _reddit_api_request("meme")
         await interaction.followup.send(submission.url)
-    except:
-        return await interaction.followup.send("Could not send picture...")
+    except Exception:
+        print(f" > Exception occured processing meme: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing meme. Please contact <@164129430766092289> when this happened.")
+
+
+# Function for a Star Wars Meme from r/starwarsmemes
+async def _init_command_starwars_response(interaction: Interaction):
+    """A function to send a random star wars meme using reddit api"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the starwars command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    try:
+        extension = None
+
+        # Make sure the extension of the URL is jpg, png or gif
+        while extension not in(".jpg", ".png", ".gif"):
+            submission = await _reddit_api_request("starwarsmemes")
+
+            # Check extension of submission url
+            response = requests.get(submission.url)
+            content_type = response.headers["content-type"]
+            extension = mimetypes.guess_extension(content_type)
+
+        # Send Content in Discord
+        await interaction.followup.send(submission.url)
+    except Exception:
+        print(f" > Exception occured processing starwars: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing starwars. Please contact <@164129430766092289> when this happened.")
 
 
 # Function for a GIF from r/gifs
@@ -164,8 +229,9 @@ async def _init_command_gif_response(interaction: Interaction):
     try:
         submission = await _reddit_api_request("gifs")
         await interaction.followup.send(submission.url)
-    except:
-        return await interaction.followup.send("Could not send gif...")
+    except Exception:
+        print(f" > Exception occured processing gif: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing gif. Please contact <@164129430766092289> when this happened.")
 
 
 # Function for an ART from r/art
@@ -181,8 +247,9 @@ async def _init_command_art_response(interaction: Interaction):
     try:
         submission = await _reddit_api_request("art")
         await interaction.followup.send(submission.url)
-    except:
-        return await interaction.followup.send("Could not send picture...")
+    except Exception:
+        print(f" > Exception occured processing art: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing art. Please contact <@164129430766092289> when this happened.")
 
 
 # Function to receive quote of the day
@@ -207,7 +274,7 @@ async def _init_command_qod_response(interaction: Interaction):
                 else:
                     await interaction.followup.send(f"{response.status}: Could not send quote of the day...")
     except Exception:
-        print(f" > Exception occured processing quote: {traceback.print_exc()}")
+        print(f" > Exception occured processing qod: {traceback.print_exc()}")
         return await interaction.followup.send(f"Exception occured processing qod. Please contact <@164129430766092289> when this happened.")
 
 
@@ -308,8 +375,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                 discord_users = excel_json.get("Unnamed: 2")
 
                 for key, user in discord_users.items():
-                    # First 4 Entries are no valid Entries
-                    if user == str(interaction.user) and int(key) >= 5:
+                    if user == str(interaction.user):
                         keyentry = key
                         break
 
@@ -364,15 +430,25 @@ async def hello(interaction: Interaction):
 
 # Command for Star Wars
 @client.tree.command()
-async def starwars(interaction: Interaction):
+async def starwarsstatic(interaction: Interaction):
     """Send a starwars meme as response"""
-    await _init_command_starwars_response(interaction)
+    await _init_command_starwars_static_response(interaction)
+
+@client.tree.command()
+async def reddit(interaction: Interaction, subreddit: str):
+    """Send a picture, gif from given subreddit"""
+    await _init_command_reddit_response(interaction, subreddit)
 
 # Command for a Meme from r/memes
 @client.tree.command()
 async def meme(interaction: Interaction):
     """Send a random meme using reddit api"""
     await _init_command_meme_response(interaction)
+
+@client.tree.command()
+async def starwars(interaction: Interaction):
+    """Send a starwars meme using reddit api"""
+    await _init_command_starwars_response(interaction)
 
 # Command for a GIF from r/gifs
 @client.tree.command()
