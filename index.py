@@ -145,11 +145,11 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
 
 
 # Function for a picture, gif from any given subreddit
-async def _init_command_reddit_response(interaction: Interaction, subreddit):
+async def _init_command_reddit_response(interaction: Interaction, subreddit: str):
     """A function to send a picture, gif from any given subreddit"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.guild} : {interaction.user} used the reddit command.")
+    print(f"> {interaction.guild} : {interaction.user} used the reddit \"{subreddit}\" command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
