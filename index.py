@@ -116,7 +116,7 @@ async def _init_command_starwars_static_response(interaction: Interaction):
 
 
 # Reddit API Function
-async def _reddit_api_request(subreddit_string):
+async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
     try:
         #async with aiohttp.ClientSession(trust_env=True) as session:
         async with aiohttp.ClientSession() as session:
@@ -133,7 +133,8 @@ async def _reddit_api_request(subreddit_string):
             try:
                 subreddit = [sub async for sub in reddit.subreddits.search_by_name(subreddit_string, exact=True)]
             except asyncprawcore.exceptions.NotFound:
-                print(f" > Exception: Subreddit not found")
+                print(f" > Exception: Subreddit \"{subreddit_string}\" not found")
+                await interaction.followup.send(f"Subreddit \"{subreddit_string}\" does not exist!")
                 raise
 
             # Respond with content from reddit
@@ -162,7 +163,7 @@ async def _init_command_reddit_response(interaction: Interaction, subreddit):
 
         # Make sure the extension of the URL is jpg, png or gif
         while extension not in(".jpg", ".png", ".gif"):
-            submission = await _reddit_api_request(subreddit)
+            submission = await _reddit_api_request(interaction, subreddit)
 
             # Check extension of submission url
             response = requests.get(submission.url)
@@ -172,8 +173,8 @@ async def _init_command_reddit_response(interaction: Interaction, subreddit):
         # Send Content in Discord
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing starwars: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing starwars. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing reddit: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing reddit. Please contact <@164129430766092289> when this happened.")
 
 
 # Function for a Meme from r/memes
@@ -187,7 +188,7 @@ async def _init_command_meme_response(interaction: Interaction):
     await interaction.response.defer()
 
     try:
-        submission = await _reddit_api_request("meme")
+        submission = await _reddit_api_request(interaction, "meme")
         await interaction.followup.send(submission.url)
     except Exception:
         print(f" > Exception occured processing meme: {traceback.print_exc()}")
@@ -209,7 +210,7 @@ async def _init_command_starwars_response(interaction: Interaction):
 
         # Make sure the extension of the URL is jpg, png or gif
         while extension not in(".jpg", ".png", ".gif"):
-            submission = await _reddit_api_request("starwarsmemes")
+            submission = await _reddit_api_request(interaction, "starwarsmemes")
 
             # Check extension of submission url
             response = requests.get(submission.url)
@@ -234,7 +235,7 @@ async def _init_command_gif_response(interaction: Interaction):
     await interaction.response.defer()
 
     try:
-        submission = await _reddit_api_request("gifs")
+        submission = await _reddit_api_request(interaction, "gifs")
         await interaction.followup.send(submission.url)
     except Exception:
         print(f" > Exception occured processing gif: {traceback.print_exc()}")
@@ -252,7 +253,7 @@ async def _init_command_art_response(interaction: Interaction):
     await interaction.response.defer()
 
     try:
-        submission = await _reddit_api_request("art")
+        submission = await _reddit_api_request(interaction, "art")
         await interaction.followup.send(submission.url)
     except Exception:
         print(f" > Exception occured processing art: {traceback.print_exc()}")
