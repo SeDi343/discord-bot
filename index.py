@@ -167,7 +167,7 @@ async def _init_command_reddit_response(interaction: Interaction, subreddit: str
             submission = await _reddit_api_request(interaction, subreddit)
 
             # Check extension of submission url
-            response = requests.get(submission.url)
+            response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
 
@@ -214,7 +214,7 @@ async def _init_command_starwars_response(interaction: Interaction):
             submission = await _reddit_api_request(interaction, "starwarsmemes")
 
             # Check extension of submission url
-            response = requests.get(submission.url)
+            response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
 
