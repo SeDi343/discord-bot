@@ -16,7 +16,7 @@ import dropbox
 import pandas
 import traceback
 from datetime import datetime, timedelta
-from discord import app_commands, Intents, Client, Interaction, File, Object
+from discord import app_commands, Intents, Client, Interaction, File, Object, Embed
 
 #########################################################################################
 # Requirements for Discord Bot
@@ -260,6 +260,37 @@ async def _init_command_art_response(interaction: Interaction):
         return await interaction.followup.send(f"Exception occured processing art. Please contact <@164129430766092289> when this happened.")
 
 
+# Function for an Picture of r/dataisbeautiful
+async def _init_command_data_response(interaction: Interaction):
+    """A function to send a random data using reddit api"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the dataisbeautiful command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    try:
+        extension = None
+
+        # Make sure the extension of the URL is jpg, png or gif
+        while extension not in(".jpg", ".png", ".gif"):
+            submission = await _reddit_api_request(interaction, "dataisbeautiful")
+
+            # Check extension of submission url
+            response = requests.get(submission.url, verify=False)
+            content_type = response.headers["content-type"]
+            extension = mimetypes.guess_extension(content_type)
+
+        # Send Content in Discord
+        embed = Embed(title=submission.title)
+        embed.set_image(url=submission.url)
+        await interaction.followup.send(embed=embed)
+    except Exception:
+        print(f" > Exception occured processing dataisbeautiful: {traceback.print_exc()}")
+        return await interaction.followup.send(f"Exception occured processing dataisbeautiful. Please contact <@164129430766092289> when this happened.")
+
+
 # Function to receive quote of the day
 async def _init_command_qod_response(interaction: Interaction):
     """A function to send a qod quote"""
@@ -469,6 +500,12 @@ async def gif(interaction: Interaction):
 async def art(interaction: Interaction):
     """Send a random art using reddit api"""
     await _init_command_art_response(interaction)
+
+# Command for a picture from r/dataisbeautiful
+@client.tree.command()
+async def dataisbeautiful(interaction: Interaction):
+    """Send a random picture from dataisbeautiful using reddit api"""
+    await _init_command_data_response(interaction)
 
 # Command for quote of the day
 @client.tree.command()
