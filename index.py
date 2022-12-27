@@ -3,6 +3,7 @@
 # Discord Bot Template
 """
 # Imports
+import os
 import sys
 import requests
 import mimetypes
@@ -278,7 +279,7 @@ async def _init_command_data_response(interaction: Interaction):
             submission = await _reddit_api_request(interaction, "dataisbeautiful")
 
             # Check extension of submission url
-            response = requests.get(submission.url, verify=False)
+            response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
 
