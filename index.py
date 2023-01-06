@@ -97,7 +97,7 @@ async def _init_command_hello_response(interaction: Interaction):
    await interaction.response.send_message("\n".join([
       f"Hi {interaction.user.mention}, thank you for saying hello!",
       "",
-      "A charming Merry Christmas to you :)",
+      "<@164129430766092289> and I wish you a wonderful and Happy New Year \U0001F386\U0001F973\U0001F340\U0001F942!",
    ]))
 
 
