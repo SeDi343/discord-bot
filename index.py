@@ -14,7 +14,7 @@ import dropbox
 import pandas
 import traceback
 from datetime import datetime, timedelta
-from discord import app_commands, Intents, Client, Interaction, File, Object, Embed
+from discord import app_commands, Intents, Client, Interaction, File, Object, Embed, Status, Game
 
 #########################################################################################
 # Requirements for Discord Bot
@@ -77,6 +77,7 @@ async def on_ready():
     ]))
 
     await client.tree.sync(guild = Object(id = 1047547059433119774))
+    await client.change_presence(status=Status.online, activity=Game(name="Check out my Slash Commands"))
 
 
 #########################################################################################
