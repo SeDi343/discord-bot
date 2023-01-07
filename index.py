@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-"""
-# Discord Bot Template
-"""
+#!/usr/bin/env python3.11
 # Imports
 import os
 import sys
