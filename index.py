@@ -428,10 +428,10 @@ async def _init_command_vipinfo_response(interaction: Interaction):
 
                     time_left = time_end - time_now
 
-                    if time_left.days >= 0:
-                        await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} days** left!")
+                    if time_left.days >= -1:
+                        await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!")
                     else:
-                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired**!")
+                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**!")
         except Exception:
             print(f" > Exception occured processing vipstatus: {traceback.print_exc()}")
             return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
