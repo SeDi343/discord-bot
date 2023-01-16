@@ -77,7 +77,7 @@ async def on_ready():
     ]))
 
     await client.tree.sync(guild = Object(id = 1047547059433119774))
-    await client.change_presence(status=Status.online, activity=Game(name="May the Force be with you"))
+    await client.change_presence(status=Status.online, activity=Game(name="May the Force be with you!"))
 
 
 #########################################################################################
