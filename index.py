@@ -128,6 +128,8 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
                 check_for_async=False)
             reddit.read_only = True
 
+            params = {"sort": "new", "time_filter": "year", "limit": 50, "syntax": "cloudsearch"}
+
             # Check if Subreddit exists
             try:
                 subreddit = [sub async for sub in reddit.subreddits.search_by_name(subreddit_string, exact=True)]
@@ -135,10 +137,13 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
                 print(f" > Exception: Subreddit \"{subreddit_string}\" not found")
                 await interaction.followup.send(f"Subreddit \"{subreddit_string}\" does not exist!")
                 raise
+            except asyncprawcore.exceptions.ServerError:
+                print(f" > Exception: Reddit Server not reachable")
+                await interaction.followup.send(f"Reddit Server not reachable!")
+                raise
 
             # Respond with content from reddit
-            subreddit = await reddit.subreddit(subreddit_string)
-            return await subreddit.random()
+            return await subreddit[0].random()
     except Exception:
         raise
 
