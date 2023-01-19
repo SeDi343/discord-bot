@@ -133,7 +133,7 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
 
             #t_1 = timeit.default_timer()
 
-            algorithm = 1
+            algorithm = 2
 
             # Check if Subreddit exists
             try:
