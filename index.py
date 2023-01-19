@@ -12,8 +12,10 @@ import asyncprawcore
 import aiofiles
 import dropbox
 import pandas
+import random
 import traceback
-from datetime import datetime, timedelta
+import timeit
+from datetime import datetime, timedelta, timezone
 from discord import app_commands, Intents, Client, Interaction, File, Object, Embed, Status, Game
 
 #########################################################################################
@@ -117,6 +119,7 @@ async def _init_command_starwars_static_response(interaction: Interaction):
 # Reddit API Function
 async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
     try:
+        #t_0 = timeit.default_timer()
         #async with aiohttp.ClientSession(trust_env=True) as session:
         async with aiohttp.ClientSession() as session:
             reddit = asyncpraw.Reddit(
@@ -128,7 +131,9 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
                 check_for_async=False)
             reddit.read_only = True
 
-            params = {"sort": "new", "time_filter": "year", "limit": 50, "syntax": "cloudsearch"}
+            #t_1 = timeit.default_timer()
+
+            algorithm = 1
 
             # Check if Subreddit exists
             try:
@@ -142,8 +147,25 @@ async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
                 await interaction.followup.send(f"Reddit Server not reachable!")
                 raise
 
-            # Respond with content from reddit
-            return await subreddit[0].random()
+            if algorithm == 1:
+                # Get Hot Submissions
+                submission_limit = 200
+                submissions = []
+                random_number = random.randint(1,submission_limit-1)
+                async for submission in subreddit[0].hot(limit=submission_limit):
+                    submissions.append(submission)
+
+                # Get a Random Submission
+                submission = submissions[random_number]
+            if algorithm == 2:
+                submission = await subreddit[0].random()
+
+            #t_2 = timeit.default_timer()
+            #print(f" > Elapsed time init: {round((t_1 - t_0), 3)} sec")
+            #print(f" > Elapsed time post: {round((t_2 - t_1), 3)} sec")
+
+            # Return Random Submission
+            return submission
     except Exception:
         raise
 
@@ -166,13 +188,15 @@ async def _init_command_reddit_response(interaction: Interaction, subreddit: str
         extension = None
 
         # Make sure the extension of the URL is jpg, png or gif
-        while extension not in(".jpg", ".png", ".gif"):
+        while extension not in(".jpg", ".png", ".gif", ".gifv"):
             submission = await _reddit_api_request(interaction, subreddit)
 
             # Check extension of submission url
             response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
+            if extension in(".jpg", ".png", ".gif", ".gifv"):
+                break
 
         # Send Content in Discord
         await interaction.followup.send(submission.url)
@@ -213,13 +237,15 @@ async def _init_command_starwars_response(interaction: Interaction):
         extension = None
 
         # Make sure the extension of the URL is jpg, png or gif
-        while extension not in(".jpg", ".png", ".gif"):
+        while extension not in(".jpg", ".png", ".gif", ".gifv"):
             submission = await _reddit_api_request(interaction, "starwarsmemes")
 
             # Check extension of submission url
             response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
+            if extension in(".jpg", ".png", ".gif", ".gifv"):
+                break
 
         # Send Content in Discord
         await interaction.followup.send(submission.url)
@@ -278,13 +304,15 @@ async def _init_command_data_response(interaction: Interaction):
         extension = None
 
         # Make sure the extension of the URL is jpg, png or gif
-        while extension not in(".jpg", ".png", ".gif"):
+        while extension not in(".jpg", ".png", ".gif", ".gifv"):
             submission = await _reddit_api_request(interaction, "dataisbeautiful")
 
             # Check extension of submission url
             response = requests.get(submission.url, verify=os.path.dirname(__file__)+"/certs.pem")
             content_type = response.headers["content-type"]
             extension = mimetypes.guess_extension(content_type)
+            if extension in(".jpg", ".png", ".gif", ".gifv"):
+                break
 
         # Send Content in Discord
         embed = Embed(title=submission.title)
@@ -428,7 +456,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                     return await interaction.followup.send(f"{interaction.user.mention} you no longer have VIP on this Server or have a lifetime membership.")
                 else:
                     # Send information how many days a user has VIP left if User was found
-                    time_now = datetime.utcnow()
+                    time_now = datetime.now()
                     time_end = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(keyentry)])
 
                     time_left = time_end - time_now
@@ -456,7 +484,7 @@ async def _init_command_ip_response(interaction: Interaction):
     await interaction.response.send_message("\n".join([
         f"Hey {interaction.user.mention}, following you find the commands for the F1 console to connect to the server",
         "",
-        "**client.connect gameserver.rust-feierabend.de:25000**"
+        "**client.connect gameserver.rust-feierabend.de:20000**"
     ]))
 
 
