@@ -484,10 +484,23 @@ async def _init_command_ip_response(interaction: Interaction):
     await interaction.response.send_message("\n".join([
         f"Hey {interaction.user.mention}, following you find the commands for the F1 console to connect to the server",
         "",
-        "**client.connect gameserver.rust-feierabend.de:20000**"
+        "**client.connect feierabend.aerography.eu:20000**"
     ]))
 
 
+# Function to Vote for Rust Server on rust-servers.net
+async def _init_command_vote_response(interaction: Interaction):
+    """A simple vote command to vote on rust-servers.net"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the vote command.")
+
+    # Repsond with the vote command
+    await interaction.response.send_message("\n".join([
+        f"Hey {interaction.user.mention}, follow this Link to vote for our Server:",
+        "https://rust-servers.net/server/169062/vote/",
+        "After voting you can use **/claim** ingame to receive a little gift."
+    ]))
 #########################################################################################
 # Commands
 #########################################################################################
@@ -562,6 +575,12 @@ async def vipstatus(interaction: Interaction):
 async def ip(interaction: Interaction):
     """Command to check gameserver connect command"""
     await _init_command_ip_response(interaction)
+
+# Command to vote for gameserver
+@client.tree.command(guild = Object(id = 1047547059433119774))
+async def vote(interaction: Interaction):
+    """Command to vote for gameserver"""
+    await _init_command_vote_response(interaction)
 
 #########################################################################################
 # Server Start
