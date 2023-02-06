@@ -45,6 +45,8 @@ print("\n".join([
     "Starting Discord Bot..."
 ]))
 
+# Guild IDs
+feierabend_id = 1047547059433119774
 
 # Main Class to response in Discord
 class ChatResponse(Client):
@@ -78,7 +80,7 @@ async def on_ready():
         f"https://discord.com/api/oauth2/authorize?client_id={client.user.id}&scope=applications.commands%20bot"
     ]))
 
-    await client.tree.sync(guild = Object(id = 1047547059433119774))
+    await client.tree.sync(guild = Object(id = feierabend_id))
     await client.change_presence(status=Status.online, activity=Game(name="May the Force be with you!"))
 
 
@@ -543,7 +545,7 @@ async def _init_command_expiredvips_response(interaction: Interaction):
                 return_string = ""
 
                 time_now = datetime.now()
-                guild = client.get_guild(1047547059433119774)
+                guild = client.get_guild(feierabend_id)
 
                 for key, discord_username in discord_usernames.items():
                     if int(key) >= 1:
@@ -661,25 +663,25 @@ async def quote(interaction: Interaction):
     await _init_command_quote_response(interaction)
 
 # Command to check remaining days VIP
-@client.tree.command(guild = Object(id = 1047547059433119774))
+@client.tree.command(guild = Object(id = feierabend_id))
 async def vipstatus(interaction: Interaction):
     """Command to check how many days a vip has left"""
     await _init_command_vipinfo_response(interaction)
 
 # Command to check expired VIPs
-@client.tree.command(guild = Object(id = 1047547059433119774))
+@client.tree.command(guild = Object(id = feierabend_id))
 async def expiredvips(interaction: Interaction):
     """Command to check which users do not have VIP left"""
     await _init_command_expiredvips_response(interaction)
 
 # Command to check connect command for gameserver
-@client.tree.command(guild = Object(id = 1047547059433119774))
+@client.tree.command(guild = Object(id = feierabend_id))
 async def ip(interaction: Interaction):
     """Command to check gameserver connect command"""
     await _init_command_ip_response(interaction)
 
 # Command to vote for gameserver
-@client.tree.command(guild = Object(id = 1047547059433119774))
+@client.tree.command(guild = Object(id = feierabend_id))
 async def vote(interaction: Interaction):
     """Command to vote for gameserver"""
     await _init_command_vote_response(interaction)
