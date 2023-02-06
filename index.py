@@ -16,7 +16,7 @@ import random
 import traceback
 import timeit
 from datetime import datetime, timedelta, timezone
-from discord import app_commands, Intents, Client, Interaction, File, Object, Embed, Status, Game
+from discord import app_commands, Intents, Client, Interaction, File, Object, Embed, Status, Game, utils
 
 #########################################################################################
 # Requirements for Discord Bot
@@ -49,7 +49,7 @@ print("\n".join([
 # Main Class to response in Discord
 class ChatResponse(Client):
     def __init__(self):
-        super().__init__(intents = Intents.default())
+        super().__init__(intents = Intents.all())
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
@@ -473,6 +473,102 @@ async def _init_command_vipinfo_response(interaction: Interaction):
         return await interaction.followup.send(f"It seems like you do not have VIP on this Server")
 
 
+# Function to check which users have expired VIP
+async def _init_command_expiredvips_response(interaction: Interaction):
+    """Function to check which users do not have VIP left"""
+
+    # Respond in the console that the command has been ran
+    print(f"> {interaction.guild} : {interaction.user} used the vipstatus command.")
+
+    # Tell Discord that Request takes some time
+    await interaction.response.defer()
+
+    # Variable for Rights
+    has_rights = False
+
+    # Check if User has Discord Role "FEIERABEND VIPS"
+    for role in interaction.user.roles:
+        if role.name == "Owner" or role.name == "Admin" or role.name == "Support":
+            has_rights = True
+
+    # Continue only when User has VIP
+    if has_rights:
+        try:
+            # Read Config File
+            async with aiofiles.open("config.json", 'r') as jsonfile:
+                raw_json = await jsonfile.read()
+                config_data = json.loads(raw_json)
+
+            # Connect to Dropbox
+            dropbox_cloud = dropbox.Dropbox(oauth2_access_token = config_data.get("dropbox_token"),
+                                            oauth2_refresh_token = config_data.get("dropbox_refresh_token"),
+                                            oauth2_access_token_expiration = datetime.strptime(config_data.get("dropbox_token_expire"), "%Y-%m-%d %H:%M:%S.%f"),
+                                            app_key = config_data.get("dropbox_app_key"),
+                                            app_secret = config_data.get("dropbox_app_secret"),
+                                            user_agent = config_data.get("dropbox_user_agent"))
+
+            # Check if Dropbox Access Token is still valid
+            old_dropbox_token = dropbox_cloud._oauth2_access_token
+            dropbox.Dropbox.check_and_refresh_access_token(dropbox_cloud)
+            new_dropbox_token = dropbox_cloud._oauth2_access_token
+
+            # If there is a new Dropbox Token available, save it into json and create new dropbox session
+            if old_dropbox_token != new_dropbox_token:
+                print(" > Dropbox Access Token is expired. Refreshing...")
+                async with aiofiles.open("config.json", mode="w") as jsonfile:
+                    config_data["dropbox_token"] = new_dropbox_token
+                    config_data["dropbox_token_expire"] = str(datetime.utcnow() + timedelta(seconds=14400))
+                    jsonstring = json.dumps(config_data, indent=4)
+                    await jsonfile.write(jsonstring)
+
+                # Create an new dropbox session
+                dropbox_cloud = dropbox.Dropbox.clone(dropbox_cloud, oauth2_access_token = new_dropbox_token)
+
+            dropbox_path = config_data.get("dropbox_filepath")
+
+            # Download File
+            async with aiofiles.open("temp.xlsx", mode="wb") as dropbox_file:
+                _,dropbox_download = dropbox_cloud.files_download(dropbox_path)
+                await dropbox_file.write(dropbox_download.content)
+
+            # Read out File
+            async with aiofiles.open("temp.xlsx", mode="rb") as dropbox_file:
+                dropbox_content = await dropbox_file.read()
+                dropbox_excel = pandas.read_excel(dropbox_content, header=3)
+                excel_output = pandas.DataFrame(data=dropbox_excel)
+                excel_json = json.loads(excel_output.to_json())
+
+                discord_usernames = excel_json.get("Unnamed: 2")
+
+                return_string = ""
+
+                time_now = datetime.now()
+                guild = client.get_guild(1047547059433119774)
+
+                for key, discord_username in discord_usernames.items():
+                    if int(key) >= 1:
+                        time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
+
+                        time_left_user = time_end_user - time_now
+
+                        if time_left_user.days <= -1:
+                            game_username = excel_output["Unnamed: 1"].values[int(key)]
+                            if discord_username is not None:
+                                member = guild.get_member_named(discord_username)
+                                if member is not None:
+                                    return_string += f"User **{game_username}** Discord: **{member.mention}** has expired since **{time_left_user.days + 1}** days!\n"
+                                else:
+                                    return_string += f"User **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
+                            else:
+                                return_string += f"User **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
+                await interaction.followup.send(return_string)
+        except Exception:
+            print(f" > Exception occured processing expiredvips: {traceback.print_exc()}")
+            return await interaction.followup.send(f"Exception occured processing expiredvips. Please contact <@164129430766092289> when this happened.")
+    # If User is not enough rights
+    else:
+        return await interaction.followup.send(f"It seems like you do not have the requested Rights")
+
 # Function for Gameserver connect command response
 async def _init_command_ip_response(interaction: Interaction):
     """A gameserver connect command response from the Bot"""
@@ -569,6 +665,12 @@ async def quote(interaction: Interaction):
 async def vipstatus(interaction: Interaction):
     """Command to check how many days a vip has left"""
     await _init_command_vipinfo_response(interaction)
+
+# Command to check expired VIPs
+@client.tree.command(guild = Object(id = 1047547059433119774))
+async def expiredvips(interaction: Interaction):
+    """Command to check which users do not have VIP left"""
+    await _init_command_expiredvips_response(interaction)
 
 # Command to check connect command for gameserver
 @client.tree.command(guild = Object(id = 1047547059433119774))
