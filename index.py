@@ -480,7 +480,7 @@ async def _init_command_expiredvips_response(interaction: Interaction):
     """Function to check which users do not have VIP left"""
 
     # Respond in the console that the command has been ran
-    print(f"> {interaction.guild} : {interaction.user} used the vipstatus command.")
+    print(f"> {interaction.guild} : {interaction.user} used the expiredvips command.")
 
     # Tell Discord that Request takes some time
     await interaction.response.defer()
@@ -488,7 +488,7 @@ async def _init_command_expiredvips_response(interaction: Interaction):
     # Variable for Rights
     has_rights = False
 
-    # Check if User has Discord Role "FEIERABEND VIPS"
+    # Check if User has enough Discord Rights
     for role in interaction.user.roles:
         if role.name == "Owner" or role.name == "Admin" or role.name == "Support":
             has_rights = True
@@ -496,6 +496,11 @@ async def _init_command_expiredvips_response(interaction: Interaction):
     # Continue only when User has VIP
     if has_rights:
         try:
+            # Required Variables default start Values
+            return_string = ""
+            time_now = datetime.now()
+            guild = client.get_guild(feierabend_id)
+
             # Read Config File
             async with aiofiles.open("config.json", 'r') as jsonfile:
                 raw_json = await jsonfile.read()
@@ -540,12 +545,8 @@ async def _init_command_expiredvips_response(interaction: Interaction):
                 excel_output = pandas.DataFrame(data=dropbox_excel)
                 excel_json = json.loads(excel_output.to_json())
 
+                # Receive 
                 discord_usernames = excel_json.get("Unnamed: 2")
-
-                return_string = ""
-
-                time_now = datetime.now()
-                guild = client.get_guild(feierabend_id)
 
                 for key, discord_username in discord_usernames.items():
                     if int(key) >= 1:
