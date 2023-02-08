@@ -559,11 +559,11 @@ async def _init_command_expiredvips_response(interaction: Interaction):
                             if discord_username is not None:
                                 member = guild.get_member_named(discord_username)
                                 if member is not None:
-                                    return_string += f"User **{game_username}** Discord: **{member.mention}** has expired since **{time_left_user.days + 1}** days!\n"
+                                    return_string += f"User: **{game_username}** Discord: **{member.mention}** has expired since **{time_left_user.days + 1}** days!\n"
                                 else:
-                                    return_string += f"User **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
+                                    return_string += f"User: **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
                             else:
-                                return_string += f"User **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
+                                return_string += f"User: **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
                 await interaction.followup.send(return_string)
         except Exception:
             print(f" > Exception occured processing expiredvips: {traceback.print_exc()}")
