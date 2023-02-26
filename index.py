@@ -659,28 +659,30 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                 # For every row in Discord Names
                 for key, discord_username in discord_usernames.items():
                     if int(key) >= 1:
-                        # Receive Time End Date
-                        time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
+                        # Check if End Date exists
+                        if str(excel_output["Unnamed: 4"].values[int(key)]) != "00:00:00":
+                            # Receive Time End Date
+                            time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
 
-                        # Calculate Time left
-                        time_left_user = time_end_user - time_now
+                            # Calculate Time left
+                            time_left_user = time_end_user - time_now
 
-                        # Check if Discord User is existent
-                        if discord_username is not None:
-                            # Receive Discord User
-                            member = guild.get_member_named(discord_username)
-                            # Check if Discord User is still connected to Discord Guild
-                            if member is not None:
-                                # Remove VIP Role if expired
-                                if time_left_user.days <= -1:
-                                    await member.remove_roles(role)
-                                    return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
-                                    counter_expvip += 1
-                                # Add VIP Role otherwise
-                                else:
-                                    await member.add_roles(role)
-                                    return_string_act += f"{member.mention} {time_left_user.days + 1} | "
-                                    counter_vip += 1
+                            # Check if Discord User is existent
+                            if discord_username is not None:
+                                # Receive Discord User
+                                member = guild.get_member_named(discord_username)
+                                # Check if Discord User is still connected to Discord Guild
+                                if member is not None:
+                                    # Remove VIP Role if expired
+                                    if time_left_user.days <= -1:
+                                        await member.remove_roles(role)
+                                        return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
+                                        counter_expvip += 1
+                                    # Add VIP Role otherwise
+                                    else:
+                                        await member.add_roles(role)
+                                        return_string_act += f"{member.mention} {time_left_user.days + 1} | "
+                                        counter_vip += 1
                 await interaction.followup.send(f"Updated VIP Role of Users. {counter_expvip} expired VIPs, {counter_vip} active VIPs\nActive:\n{return_string_act}\nInactive:\n{return_string_exp}")
         except Exception:
             print(f" > Exception occured processing viplist: {traceback.print_exc()}")
