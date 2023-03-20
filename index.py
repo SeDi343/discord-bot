@@ -720,6 +720,24 @@ async def _init_command_vote_response(interaction: Interaction):
         "https://rust-servers.net/server/169062/vote/",
         "After voting you can use **/claim** ingame to receive a little gift."
     ]))
+
+
+# Function to send donation response
+async def _init_command_donation_response(interaction):
+   """The function to send donation link"""
+   try:
+      # Respond in the console that the command has been ran
+      print(f"> {interaction.guild} : {interaction.user} used the donation command.")
+
+      donationlink = config_data.get("donation_link")
+
+      await interaction.response.send_message("\n".join([
+         f"Hey {interaction.user.mention}, thank you for considering donating to support my work!",
+         f"You can donate via PayPal using {donationlink} :heart_hands:"]))
+   except Exception:
+      print(f" > Exception occured processing donation command: {traceback.print_exc()}")
+      return await interaction.response.send_message(f"Can not process donation command. Please contact <@164129430766092289> when this happened.")
+
 #########################################################################################
 # Commands
 #########################################################################################
@@ -812,6 +830,12 @@ async def ip(interaction: Interaction):
 async def vote(interaction: Interaction):
     """Command to vote for gameserver"""
     await _init_command_vote_response(interaction)
+
+# Command for Donation
+@client.tree.command()
+async def donate(interaction: Interaction):
+   """A command to send donation link"""
+   await _init_command_donation_response(interaction)
 
 #########################################################################################
 # Server Start
