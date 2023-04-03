@@ -109,7 +109,7 @@ async def _init_command_help_response(interaction):
          "**\\qod** - The Quote of the Day.",
          "**\\quote** - A random Quote",
          f"**\\donation** - A link to support the creator of {client.user}",
-         "**And many other User specific Commands!**"
+         "**And many other Discord Server specific Commands!**"
       ]))
    except Exception:
       print(f" > Exception occured processing help command: {traceback.print_exc()}")
