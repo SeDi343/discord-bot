@@ -81,12 +81,40 @@ async def on_ready():
     ]))
 
     await client.tree.sync(guild = Object(id = feierabend_id))
-    await client.change_presence(status=Status.online, activity=Game(name="May the Force be with you!"))
+    await client.change_presence(status=Status.online, activity=Game(name="In the end it’s not the years in life but the life in years."))
 
 
 #########################################################################################
 # Functions
 #########################################################################################
+
+# Function to check out all available commands
+async def _init_command_help_response(interaction):
+   """The function to check help"""
+   try:
+      # Respond in the console that the command has been ran
+      print(f"> {interaction.guild} : {interaction.user} used the help command.")
+
+      await interaction.response.send_message("\n".join([
+         f"Awailable Commands for {client.user}:",
+         "**\\help** - Shows this Message.",
+         "**\\hello** - A simple hello response.",
+         "**\\starwarsstatic** - A static Star Wars Meme.",
+         "**\\reddit string** - A random post from given reddit subreddit.",
+         "**\\meme** - A random post from r/memes.",
+         "**\\starwars** - A random post from r/starwarsmemes.",
+         "**\\gif** - A random post from r/gifs.",
+         "**\\art** - A random post from r/art.",
+         "**\\dataisbeautiful** - A random post from r/dataisbeautiful.",
+         "**\\qod** - The Quote of the Day.",
+         "**\\quote** - A random Quote",
+         f"**\\donation** - A link to support the creator of {client.user}",
+         "**And many other User specific Commands!**"
+      ]))
+   except Exception:
+      print(f" > Exception occured processing help command: {traceback.print_exc()}")
+      return await interaction.response.send_message(f"Can not process help command. Please contact <@164129430766092289> when this happened.")
+
 
 # Function for a Hello
 async def _init_command_hello_response(interaction: Interaction):
@@ -741,6 +769,12 @@ async def _init_command_donation_response(interaction):
 #########################################################################################
 # Commands
 #########################################################################################
+
+# Command to check help
+@client.tree.command()
+async def help(interaction: Interaction):
+   """Help Command for Music Bot"""
+   await _init_command_help_response(interaction)
 
 # Command for Hello
 @client.tree.command()
