@@ -96,7 +96,7 @@ async def _init_command_help_response(interaction):
       print(f"> {interaction.guild} : {interaction.user} used the help command.")
 
       await interaction.response.send_message("\n".join([
-         f"Awailable Commands for {client.user}:",
+         f"Available Commands for {client.user.mention}:",
          "**\\help** - Shows this Message.",
          "**\\hello** - A simple hello response.",
          "**\\starwarsstatic** - A static Star Wars Meme.",
@@ -108,7 +108,7 @@ async def _init_command_help_response(interaction):
          "**\\dataisbeautiful** - A random post from r/dataisbeautiful.",
          "**\\qod** - The Quote of the Day.",
          "**\\quote** - A random Quote",
-         f"**\\donation** - A link to support the creator of {client.user}",
+         f"**\\donation** - A link to support the creator of {client.user.mention}",
          "**And many other Discord Server specific Commands!**"
       ]))
    except Exception:
