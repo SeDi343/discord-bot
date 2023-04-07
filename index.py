@@ -415,16 +415,19 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     # Tell Discord that Request takes some time
     await interaction.response.defer()
 
-    # Variable for VIP
+    # Variable for Roles
+    has_rights = False
     has_vip = False
 
-    # Check if User has Discord Role "FEIERABEND VIPS"
+    # Check if User has Discord Role "FEIERABEND VIPS" or "IM FEIERABEND :)"
     for role in interaction.user.roles:
+        if role.name == "Feierabend VIPs" or "Im Feierabend :)":
+            has_rights = True
         if role.name == "Feierabend VIPs":
             has_vip = True
 
-    # Continue only when User has VIP
-    if has_vip:
+    # Continue only when User has rights
+    if has_rights:
         try:
             # Read Config File
             async with aiofiles.open("config.json", 'r') as jsonfile:
@@ -481,10 +484,12 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                         break
 
                 # Find remaining days for given User
-                if keyentry == False:
-                    # If User was not found
-                    return await interaction.followup.send(f"{interaction.user.mention} you no longer have VIP on this Server or have a lifetime membership.")
-                else:
+                if keyentry == False and has_vip:
+                    # If User was not found but has VIP Role
+                    return await interaction.followup.send(f"{interaction.user.mention} you have VIP on this Server for a lifetime membership.")
+                if keyentry == False and not(has_vip):
+                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you do not have VIP on this Server. Please Check out <#1047547059433119777> for more Information.")
+                if keyentry != False:
                     # Send information how many days a user has VIP left if User was found
                     time_now = datetime.now()
                     time_end = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(keyentry)])
@@ -494,13 +499,13 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                     if time_left.days >= -1:
                         await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!")
                     else:
-                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**!")
+                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**!\nPlease Check out <#1047547059433119777> for more Information.")
         except Exception:
             print(f" > Exception occured processing vipstatus: {traceback.print_exc()}")
             return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
     # If User is not VIP
     else:
-        return await interaction.followup.send(f"It seems like you do not have VIP on this Server")
+        return await interaction.followup.send(f"Insurficient Rights to use this Command")
 
 
 # Function to check which users have expired VIP
