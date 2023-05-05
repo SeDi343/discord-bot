@@ -709,14 +709,16 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                                     # Remove VIP Role if expired
                                     if time_left_user.days <= -1:
                                         await member.remove_roles(role)
-                                        return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
+                                        if time_left_user.data >= -10:
+                                            return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
                                         counter_expvip += 1
                                     # Add VIP Role otherwise
                                     else:
                                         await member.add_roles(role)
-                                        return_string_act += f"{member.mention} {time_left_user.days + 1} | "
+                                        if time_left_user.days <= 10:
+                                            return_string_act += f"{member.mention} {time_left_user.days + 1} | "
                                         counter_vip += 1
-                await interaction.followup.send(f"Updated VIP Role of Users. {counter_expvip} expired VIPs, {counter_vip} active VIPs\nActive:\n{return_string_act}\nInactive:\n{return_string_exp}")
+                await interaction.followup.send(f"Updated VIP Role of Users. {counter_expvip} expired VIPs, {counter_vip} active VIPs\nActive (10 Days remaining):\n{return_string_act}\nInactive (Since 10 Days):\n{return_string_exp}")
         except Exception:
             print(f" > Exception occured processing viplist: {traceback.print_exc()}")
             return await interaction.followup.send(f"Exception occured processing viplist. Please contact <@164129430766092289> when this happened.")
