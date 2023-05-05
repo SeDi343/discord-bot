@@ -709,7 +709,7 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                                     # Remove VIP Role if expired
                                     if time_left_user.days <= -1:
                                         await member.remove_roles(role)
-                                        if time_left_user.data >= -10:
+                                        if time_left_user.days >= -10:
                                             return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
                                         counter_expvip += 1
                                     # Add VIP Role otherwise
