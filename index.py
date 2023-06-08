@@ -81,8 +81,7 @@ async def on_ready():
     ]))
 
     await client.tree.sync(guild = Object(id = feierabend_id))
-    await client.change_presence(status=Status.online, activity=Game(name="In the end it’s not the years in life but the life in years."))
-
+    await client.change_presence(status=Status.online, activity=Game(name="/help | aerography.eu"))
 
 #########################################################################################
 # Functions
@@ -419,6 +418,9 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     has_rights = False
     has_vip = False
 
+    guild = client.get_guild(feierabend_id)
+    vip_role = utils.get(guild.roles, name="Feierabend VIPs")
+
     # Check if User has Discord Role "FEIERABEND VIPS" or "IM FEIERABEND :)"
     for role in interaction.user.roles:
         if role.name == "Feierabend VIPs" or "Im Feierabend :)":
@@ -499,6 +501,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                     if time_left.days >= -1:
                         await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!")
                     else:
+                        await interaction.user.remove_roles(vip_role)
                         await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**!\nPlease Check out <#1047547059433119777> for more Information.")
         except Exception:
             print(f" > Exception occured processing vipstatus: {traceback.print_exc()}")
