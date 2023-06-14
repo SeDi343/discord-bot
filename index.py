@@ -148,6 +148,7 @@ async def _init_command_starwars_static_response(interaction: Interaction):
 # Reddit API Function
 async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
     try:
+        raise "Thousands of subreddits go dark protesting Reddit's new API Costs"
         #t_0 = timeit.default_timer()
         #async with aiohttp.ClientSession(trust_env=True) as session:
         async with aiohttp.ClientSession() as session:
@@ -481,9 +482,10 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                 discord_users = excel_json.get("Unnamed: 2")
 
                 for key, user in discord_users.items():
-                    if user == str(interaction.user):
-                        keyentry = key
-                        break
+                    if user is not None:
+                        if guild.get_member_named(user) == interaction.user:
+                            keyentry = key
+                            break
 
                 # Find remaining days for given User
                 if keyentry == False and has_vip:
