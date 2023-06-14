@@ -590,22 +590,25 @@ async def _init_command_expiredvips_response(interaction: Interaction):
                 for key, discord_username in discord_usernames.items():
                     if int(key) >= 1:
                         # Receive Time End Date
-                        time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
+                        if str(excel_output["Unnamed: 4"].values[int(key)]) != "00:00:00":
+                            # Receive Time End Date
+                            time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
 
-                        # Calculate Time left
-                        time_left_user = time_end_user - time_now
+                            # Calculate Time left
+                            time_left_user = time_end_user - time_now
 
-                        # Check if user has no time left if so, print it out
-                        if time_left_user.days <= -1:
-                            game_username = excel_output["Unnamed: 1"].values[int(key)]
-                            if discord_username is not None:
-                                member = guild.get_member_named(discord_username)
-                                if member is not None:
-                                    return_string += f"User: **{game_username}** Discord: **{member.mention}** has expired since **{time_left_user.days + 1}** days!\n"
+                            # Check if user has no time left if so, print it out
+                            if time_left_user.days <= -1 and time_left_user.days >= -20:
+                                game_username = excel_output["Unnamed: 1"].values[int(key)]
+                                steam_id = excel_output["Unnamed: 7"].values[int(key)]
+                                if discord_username is not None:
+                                    member = guild.get_member_named(discord_username)
+                                    if member is not None:
+                                        return_string += f"User: **{game_username}** Steam: **{steam_id}** Discord: **{member.mention}** has expired since **{time_left_user.days + 1}** days!\n"
+                                    else:
+                                        return_string += f"User: **{game_username}** Steam: **{steam_id}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
                                 else:
-                                    return_string += f"User: **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
-                            else:
-                                return_string += f"User: **{game_username}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
+                                    return_string += f"User: **{game_username}** Steam: **{steam_id}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
                 await interaction.followup.send(return_string)
         except Exception:
             print(f" > Exception occured processing expiredvips: {traceback.print_exc()}")
@@ -701,6 +704,7 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                         if str(excel_output["Unnamed: 4"].values[int(key)]) != "00:00:00":
                             # Receive Time End Date
                             time_end_user = pandas.to_datetime(excel_output["Unnamed: 4"].values[int(key)])
+                            steam_id = excel_output["Unnamed: 7"].values[int(key)]
 
                             # Calculate Time left
                             time_left_user = time_end_user - time_now
@@ -715,13 +719,13 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                                     if time_left_user.days <= -1:
                                         await member.remove_roles(role)
                                         if time_left_user.days >= -10:
-                                            return_string_exp += f"{member.mention} {time_left_user.days + 1} | "
+                                            return_string_exp += f"{member.mention} {steam_id} ({time_left_user.days + 1}) | "
                                         counter_expvip += 1
                                     # Add VIP Role otherwise
                                     else:
                                         await member.add_roles(role)
                                         if time_left_user.days <= 10:
-                                            return_string_act += f"{member.mention} {time_left_user.days + 1} | "
+                                            return_string_act += f"{member.mention} {steam_id} ({time_left_user.days + 1}) | "
                                         counter_vip += 1
                 await interaction.followup.send(f"Updated VIP Role of Users. {counter_expvip} expired VIPs, {counter_vip} active VIPs\nActive (10 Days remaining):\n{return_string_act}\nInactive (Since 10 Days):\n{return_string_exp}")
         except Exception:
