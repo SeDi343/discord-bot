@@ -2,6 +2,7 @@
 # Imports
 import os
 import sys
+import re
 import requests
 import mimetypes
 import json
@@ -89,31 +90,37 @@ async def on_ready():
 
 # Function to check out all available commands
 async def _init_command_help_response(interaction):
-   """The function to check help"""
-   try:
-      # Respond in the console that the command has been ran
-      print(f"> {interaction.guild} : {interaction.user} used the help command.")
+    """The function to check help"""
+    try:
+        # Respond in the console that the command has been ran
+        print(f"> {interaction.guild} : {interaction.user} used the help command.")
 
-      await interaction.response.send_message("\n".join([
-         f"Available Commands for {client.user.mention}:",
-         "**\\help** - Shows this Message.",
-         "**\\hello** - A simple hello response.",
-         "**\\starwarsstatic** - A static Star Wars Meme.",
-         "**\\reddit string** - A random post from given reddit subreddit.",
-         "**\\meme** - A random post from r/memes.",
-         "**\\starwars** - A random post from r/starwarsmemes.",
-         "**\\gif** - A random post from r/gifs.",
-         "**\\art** - A random post from r/art.",
-         "**\\dataisbeautiful** - A random post from r/dataisbeautiful.",
-         "**\\qod** - The Quote of the Day.",
-         "**\\quote** - A random Quote",
-         f"**\\donation** - A link to support the creator of {client.user.mention}",
-         "**And many other Discord Server specific Commands!**"
-      ]))
-   except Exception:
-      print(f" > Exception occured processing help command: {traceback.print_exc()}")
-      return await interaction.response.send_message(f"Can not process help command. Please contact <@164129430766092289> when this happened.")
+        await interaction.response.send_message("\n".join([
+            f"Available Commands for {client.user.mention}:",
+            "**\\help** - Shows this Message.",
+            "**\\hello** - A simple hello response.",
+            "**\\starwarsstatic** - A static Star Wars Meme.",
+            "**\\reddit string** - A random post from given reddit subreddit.",
+            "**\\meme** - A random post from r/memes.",
+            "**\\starwars** - A random post from r/starwarsmemes.",
+            "**\\gif** - A random post from r/gifs.",
+            "**\\art** - A random post from r/art.",
+            "**\\dataisbeautiful** - A random post from r/dataisbeautiful.",
+            "**\\qod** - The Quote of the Day.",
+            "**\\quote** - A random Quote",
+            f"**\\donation** - A link to support the creator of {client.user.mention}",
+            "**And many other Discord Server specific Commands!**"
+        ]))
+    except Exception:
+        print(f" > Exception occured processing help command: {traceback.format_exc()}")
+        return await interaction.response.send_message(f"Can not process help command. Please contact <@164129430766092289> when this happened.")
 
+
+# Function for exception response
+def console_create(traceback):
+    embed = Embed(title="Traceback")
+    embed.set_footer(text=re.sub(r'File ".*[\\/]([^\\/]+.py)"',r'File "\1"', traceback.format_exc()))
+    return embed
 
 # Function for a Hello
 async def _init_command_hello_response(interaction: Interaction):
@@ -148,7 +155,7 @@ async def _init_command_starwars_static_response(interaction: Interaction):
 # Reddit API Function
 async def _reddit_api_request(interaction: Interaction, subreddit_string: str):
     try:
-        raise "Thousands of subreddits go dark protesting Reddit's new API Costs"
+        raise Exception("Thousands of subreddits go dark protesting Reddit's new API Costs")
         #t_0 = timeit.default_timer()
         #async with aiohttp.ClientSession(trust_env=True) as session:
         async with aiohttp.ClientSession() as session:
@@ -231,8 +238,9 @@ async def _init_command_reddit_response(interaction: Interaction, subreddit: str
         # Send Content in Discord
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing reddit: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing reddit. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing reddit: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing reddit. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for a Meme from r/memes
@@ -249,8 +257,9 @@ async def _init_command_meme_response(interaction: Interaction):
         submission = await _reddit_api_request(interaction, "meme")
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing meme: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing meme. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing meme: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing meme. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for a Star Wars Meme from r/starwarsmemes
@@ -280,8 +289,9 @@ async def _init_command_starwars_response(interaction: Interaction):
         # Send Content in Discord
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing starwars: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing starwars. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing starwars: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing starwars. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for a GIF from r/gifs
@@ -298,8 +308,9 @@ async def _init_command_gif_response(interaction: Interaction):
         submission = await _reddit_api_request(interaction, "gifs")
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing gif: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing gif. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing gif: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing gif. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for an ART from r/art
@@ -316,8 +327,9 @@ async def _init_command_art_response(interaction: Interaction):
         submission = await _reddit_api_request(interaction, "art")
         await interaction.followup.send(submission.url)
     except Exception:
-        print(f" > Exception occured processing art: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing art. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing art: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing art. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for an Picture of r/dataisbeautiful
@@ -349,8 +361,9 @@ async def _init_command_data_response(interaction: Interaction):
         embed.set_image(url=submission.url)
         await interaction.followup.send(embed=embed)
     except Exception:
-        print(f" > Exception occured processing dataisbeautiful: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing dataisbeautiful. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing dataisbeautiful: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing dataisbeautiful. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function to receive quote of the day
@@ -375,8 +388,9 @@ async def _init_command_qod_response(interaction: Interaction):
                 else:
                     await interaction.followup.send(f"{response.status}: Could not send quote of the day...")
     except Exception:
-        print(f" > Exception occured processing qod: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing qod. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing qod: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing qod. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function to receive a random quote
@@ -401,8 +415,9 @@ async def _init_command_quote_response(interaction: Interaction):
                 else:
                     await interaction.followup.send(f"{response.status}: Could not send quote...")
     except Exception:
-        print(f" > Exception occured processing quote: {traceback.print_exc()}")
-        return await interaction.followup.send(f"Exception occured processing quote. Please contact <@164129430766092289> when this happened.")
+        print(f" > Exception occured processing quote: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing quote. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 
 # Function for VIPs to check how many days they have left
@@ -420,6 +435,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
     has_vip = False
 
     guild = client.get_guild(feierabend_id)
+    mods_channel = client.get_channel(1049082386127790141)
     vip_role = utils.get(guild.roles, name="Feierabend VIPs")
 
     # Check if User has Discord Role "FEIERABEND VIPS" or "IM FEIERABEND :)"
@@ -505,10 +521,12 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                         await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!")
                     else:
                         await interaction.user.remove_roles(vip_role)
-                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**! {steam_id}\nPlease Check out <#1047547059433119777> for more Information.")
+                        await interaction.followup.send(f"{interaction.user.mention} your VIP Status has **expired** since **{(time_left.days + 1) * -1} {'day' if time_left.days == -2 else 'days'}**!\nPlease Check out <#1047547059433119777> for more Information.")
+                        await mods_channel.send(f"{interaction.user.mention} **{interaction.user}** his VIP has expired. Steam ID: **{steam_id}**")
         except Exception:
-            print(f" > Exception occured processing vipstatus: {traceback.print_exc()}")
-            return await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
+            print(f" > Exception occured processing vipstatus: {traceback.format_exc()}")
+            await interaction.followup.send(f"Exception occured processing vipstatus. Please contact <@164129430766092289> when this happened.")
+            return await interaction.channel.send(embed=console_create(traceback))
     # If User is not VIP
     else:
         return await interaction.followup.send(f"Insurficient Rights to use this Command")
@@ -612,8 +630,9 @@ async def _init_command_expiredvips_response(interaction: Interaction):
                                     return_string += f"User: **{game_username}** Steam: **{steam_id}** Discord: **{discord_username}** has expired since **{time_left_user.days + 1}** days!\n"
                 await interaction.followup.send(return_string)
         except Exception:
-            print(f" > Exception occured processing expiredvips: {traceback.print_exc()}")
-            return await interaction.followup.send(f"Exception occured processing expiredvips. Please contact <@164129430766092289> when this happened.")
+            print(f" > Exception occured processing expiredvips: {traceback.format_exc()}")
+            await interaction.followup.send(f"Exception occured processing expiredvips. Please contact <@164129430766092289> when this happened.")
+            return await interaction.channel.send(embed=console_create(traceback))
     # If User is not enough rights
     else:
         return await interaction.followup.send(f"It seems like you do not have the requested Rights")
@@ -730,8 +749,9 @@ async def _init_command_vipupdate_response(interaction: Interaction):
                                         counter_vip += 1
                 await interaction.followup.send(f"Updated VIP Role of Users. {counter_expvip} expired VIPs, {counter_vip} active VIPs\nActive (10 Days remaining):\n{return_string_act}\nInactive (Since 10 Days):\n{return_string_exp}")
         except Exception:
-            print(f" > Exception occured processing viplist: {traceback.print_exc()}")
-            return await interaction.followup.send(f"Exception occured processing viplist. Please contact <@164129430766092289> when this happened.")
+            print(f" > Exception occured processing viplist: {traceback.format_exc()}")
+            await interaction.followup.send(f"Exception occured processing viplist. Please contact <@164129430766092289> when this happened.")
+            return await interaction.channel.send(embed=console_create(traceback))
     # If User is not enough rights
     else:
         return await interaction.followup.send(f"It seems like you do not have the requested Rights")
@@ -769,19 +789,20 @@ async def _init_command_vote_response(interaction: Interaction):
 
 # Function to send donation response
 async def _init_command_donation_response(interaction):
-   """The function to send donation link"""
-   try:
-      # Respond in the console that the command has been ran
-      print(f"> {interaction.guild} : {interaction.user} used the donation command.")
+    """The function to send donation link"""
+    try:
+        # Respond in the console that the command has been ran
+        print(f"> {interaction.guild} : {interaction.user} used the donation command.")
 
-      donationlink = config_data.get("donation_link")
+        donationlink = config_data.get("donation_link")
 
-      await interaction.response.send_message("\n".join([
-         f"Hey {interaction.user.mention}, thank you for considering donating to support my work!",
-         f"You can donate via PayPal using {donationlink} :heart_hands:"]))
-   except Exception:
-      print(f" > Exception occured processing donation command: {traceback.print_exc()}")
-      return await interaction.response.send_message(f"Can not process donation command. Please contact <@164129430766092289> when this happened.")
+        await interaction.response.send_message("\n".join([
+            f"Hey {interaction.user.mention}, thank you for considering donating to support my work!",
+            f"You can donate via PayPal using {donationlink} :heart_hands:"]))
+    except Exception:
+        print(f" > Exception occured processing donation command: {traceback.format_exc()}")
+        await interaction.followup.send(f"Exception occured processing reddit. Please contact <@164129430766092289> when this happened.")
+        return await interaction.channel.send(embed=console_create(traceback))
 
 #########################################################################################
 # Commands
@@ -790,8 +811,8 @@ async def _init_command_donation_response(interaction):
 # Command to check help
 @client.tree.command()
 async def help(interaction: Interaction):
-   """Help Command for Music Bot"""
-   await _init_command_help_response(interaction)
+    """Help Command for Music Bot"""
+    await _init_command_help_response(interaction)
 
 # Command for Hello
 @client.tree.command()
@@ -885,8 +906,8 @@ async def vote(interaction: Interaction):
 # Command for Donation
 @client.tree.command()
 async def donate(interaction: Interaction):
-   """A command to send donation link"""
-   await _init_command_donation_response(interaction)
+    """A command to send donation link"""
+    await _init_command_donation_response(interaction)
 
 #########################################################################################
 # Server Start
