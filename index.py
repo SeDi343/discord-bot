@@ -518,6 +518,9 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                     time_left = time_end - time_now
 
                     if time_left.days >= -1:
+                        # Check if VIP Role is not in Useres Roles List, and add it if it is not existent
+                        if not vip_role in interaction.user.roles:
+                            await interaction.user.add_roles(vip_role)
                         await interaction.followup.send(f"{interaction.user.mention} you have VIP for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!")
                     else:
                         await interaction.user.remove_roles(vip_role)
