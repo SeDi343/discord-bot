@@ -11,6 +11,5 @@
     "reddit_client_id": "REDDITCLIENTID",
     "reddit_client_secret": "REDDITCLIENTSECRET",
     "reddit_redirect_uri": "REDDITREDIRECTURI",
-    "reddit_user_agent": "REDDITUSERAGENT",
-    "donation_link": "DONATIONLINK"
+    "reddit_user_agent": "REDDITUSERAGENT"
 }
