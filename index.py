@@ -656,7 +656,7 @@ async def _init_command_vipupdate_response(interaction: Interaction):
 
     # Check if User has enough Discord Rights
     for role in interaction.user.roles:
-        if role.name == "Owner" or role.name == "Admin" or role.name == "Support":
+        if role.name == "Owner" or role.name == "Admin" or role.name == "Support" or role.name == "Development":
             has_rights = True
 
     # Continue only when User has VIP
