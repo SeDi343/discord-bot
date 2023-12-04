@@ -506,7 +506,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                 # Find remaining days for given User
                 if keyentry == False and has_vip:
                     # If User was not found but has VIP Role
-                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you purchised VIP over <@1023897726301249628>")
+                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you received VIP over <@1023897726301249628>")
                 if keyentry == False and not(has_vip):
                     return await interaction.followup.send(f"{interaction.user.mention} it seems like you do not have VIP on this Server. Please Check out <#1047547059433119777> for more Information.")
                 if keyentry != False:
