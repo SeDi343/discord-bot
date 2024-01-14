@@ -505,8 +505,41 @@ async def _init_command_vipinfo_response(interaction: Interaction):
 
                 # Find remaining days for given User
                 if keyentry == False and has_vip:
-                    # If User was not found but has VIP Role
-                    return await interaction.followup.send(f"{interaction.user.mention} it seems like you received VIP over <@1023897726301249628>")
+                    # If User was not found but has VIP Role (Bought VIP via Tip4Server)
+                    vip_channel_id = guild.get_channel(1196074086980407367)
+                    vip_messages = ""
+                    time_now = datetime.now()
+                    async for message in vip_channel_id.history(limit=1000):
+                        if str(interaction.user.name) in message.content:
+                            # Regex Patterns for VIP Packet Name and Datetime
+                            vip_packet_pattern = r"^([^\s]+)"
+                            datetime_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})"
+
+                            # Find datetime in message
+                            datetime_var = re.search(datetime_pattern, message.content)
+                            if datetime_var:
+                                # Extract datetime String
+                                datetime_str = datetime_var.group(1)
+
+                                # Parse the datetime string into a datetime object and calculate time left
+                                time_end = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+                                time_left = time_end - time_now
+
+                                # Check if time_end is in future
+                                if time_left.days >= -1:
+                                    vip_packet_name_var = re.search(vip_packet_pattern, message.content)
+
+                                    # Extract VIP Packet Name if Time is in future
+                                    if vip_packet_name_var:
+                                        vip_packet_name = vip_packet_name_var.group(1)
+
+                                    # Append VIP Packet and Days left in message
+                                    vip_messages += f"You have **{vip_packet_name}** for **{time_left.days + 1} {'day' if time_left.days == 0 else 'days'}** left!\n"
+                    if not "".__eq__(vip_messages):
+                        return await interaction.followup.send(f"{interaction.user.mention}\n{vip_messages}")
+                    else:
+                        return await interaction.followup.send(f"{interaction.user.mention} it seems like you have VIP since earlier than 14.01.2024")
+
                 if keyentry == False and not(has_vip):
                     return await interaction.followup.send(f"{interaction.user.mention} it seems like you do not have VIP on this Server. Please Check out <#1047547059433119777> for more Information.")
                 if keyentry != False:
