@@ -538,7 +538,7 @@ async def _init_command_vipinfo_response(interaction: Interaction):
                     if not "".__eq__(vip_messages):
                         return await interaction.followup.send(f"{interaction.user.mention}\n{vip_messages}")
                     else:
-                        return await interaction.followup.send(f"{interaction.user.mention} it seems like you have VIP since earlier than 14.01.2024")
+                        return await interaction.followup.send(f"{interaction.user.mention} it seems like you have VIP since earlier than **14.01.2024**. Only activated VIP after 14.01.2024 have access to this command, required data is only available since then.")
 
                 if keyentry == False and not(has_vip):
                     return await interaction.followup.send(f"{interaction.user.mention} it seems like you do not have VIP on this Server. Please Check out <#1047547059433119777> for more Information.")
