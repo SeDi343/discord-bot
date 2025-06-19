@@ -804,7 +804,7 @@ async def _init_command_ip_response(interaction: Interaction):
     await interaction.response.send_message("\n".join([
         f"Hey {interaction.user.mention}, following you find the commands for the F1 console to connect to the server",
         "",
-        "**client.connect feierabend.aerography.eu:20000**"
+        "**client.connect 78.46.73.244:28310**"
     ]))
 
 
@@ -818,7 +818,7 @@ async def _init_command_vote_response(interaction: Interaction):
     # Repsond with the vote command
     await interaction.response.send_message("\n".join([
         f"Hey {interaction.user.mention}, follow this Link to vote for our Server:",
-        "https://rust-servers.net/server/169062/vote/",
+        "[Ger/Eng] Feierabend|Raid Time|Solo|Duo|Trio|Noob Friendly: https://rust-servers.net/server/173583/vote/",
         "After voting you can use **/claim** ingame to receive a little gift."
     ]))
 
@@ -908,22 +908,22 @@ async def quote(interaction: Interaction):
     await _init_command_quote_response(interaction)
 
 # Command to check remaining days VIP
-@client.tree.command(guild = Object(id = feierabend_id))
-async def vipstatus(interaction: Interaction):
-    """Command to check how many days a vip has left"""
-    await _init_command_vipinfo_response(interaction)
+#@client.tree.command(guild = Object(id = feierabend_id))
+#async def vipstatus(interaction: Interaction):
+#    """Command to check how many days a vip has left"""
+#    await _init_command_vipinfo_response(interaction)
 
 # Command to check expired VIPs
-@client.tree.command(guild = Object(id = feierabend_id))
-async def expiredvips(interaction: Interaction):
-    """Command to check which users do not have VIP left"""
-    await _init_command_expiredvips_response(interaction)
+#@client.tree.command(guild = Object(id = feierabend_id))
+#async def expiredvips(interaction: Interaction):
+#    """Command to check which users do not have VIP left"""
+#    await _init_command_expiredvips_response(interaction)
 
 # Command to update VIPs on Discord
-@client.tree.command(guild = Object(id = feierabend_id))
-async def vipupdate(interaction: Interaction):
-    """"Command to update VIPs on Discord"""
-    await _init_command_vipupdate_response(interaction)
+#@client.tree.command(guild = Object(id = feierabend_id))
+#async def vipupdate(interaction: Interaction):
+#    """"Command to update VIPs on Discord"""
+#    await _init_command_vipupdate_response(interaction)
 
 # Command to check connect command for gameserver
 @client.tree.command(guild = Object(id = feierabend_id))

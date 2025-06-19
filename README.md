@@ -7,5 +7,9 @@ Afterwards go to the "Bot" Section and create the Bot.
 Finally it is important to press "Reset Token" to receive your token for your Bot.  
 Put this token now into the token file. Now you're able to launch the bot!  
   
-Bot requires python3.11. Install python requirements using "python3.11 -m pip install -r requirements.txt".  
+Bot requires python3 (tested on 3.11 and 3.13). Install python requirements using:
+* python3 -m venv discord-bot-venv
+* source discord-bot-venv/bin/activate
+* pip install -r requirements.txt
+* python index.py / sh start.sh (for a screen session)
 Also check config.json and addapt configuration with your settings.  
